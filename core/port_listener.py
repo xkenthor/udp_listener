@@ -1,6 +1,6 @@
 """
-This module implements port listener for udp packages, processing and keeping
-    data for future access.
+This module implements port listener for packages, processing and keeping data
+    for future access.
 
 """
 import threading
@@ -41,6 +41,10 @@ class UDPServer:
     def __check_status(self):
         """
         This method checks if server is currently on air, prints error if
+            something gone wrong.
+
+        Return:
+        < bool > -- True/False - success/failure.
 
         """
         if self.__service_thread is not None:
@@ -57,21 +61,38 @@ class UDPServer:
 
         return False
 
-    def serve_forever_thread(self):
+    def __start_service(self):
         """
-        This method creates new thread of start_service() function.
+        This method starts listening on specified ip & port for udp packages.
+            It must be called by serve_forever or serve_forever_thread.
 
         """
-        if self.__check_status():
-            return
+        self.__on_air = True
 
-        self.__service_thread = threading.Thread(target=self.__start_service,
-                                    name="{}-s-udp".format(str(self.__port)))
-        self.__service_thread.start()
+        while self.__on_air:
+            self.__current_data = self.read_data()
+
+    def read_data(self):
+        """
+        This method reads data from port only once. Notice that this function
+            locks until data
+
+        Return:
+        raw_data -- < tuple > of < float > & < str >. (time, data). Data
+            received by source object.
+
+        """
+        data, sender_address = self.__server_socket.recvfrom(
+                                                    self.__recv_length)
+
+        data = data.decode()
+        data = self.data_processing(data)
+
+        return (time.time(), data)
 
     def serve_forever(self):
         """
-        This method starts listenin on specified ip & port for udp packages.
+        This method starts listening on specified ip & port for udp packages.
             Notice that this function doesn't create any thread.
 
         """
@@ -80,24 +101,18 @@ class UDPServer:
 
         self.__start_service()
 
-
-    def __start_service(self):
+    def serve_forever_thread(self):
         """
-        This method starts listenin on specified ip & port for udp packages.
-            It must be called by serve_forever or serve_forever_thread.
+        This method creates new thread of start_service() function.
 
         """
-        self.__on_air = True
+        if self.__check_status():
+            return
 
-        while self.__on_air:
-            data, sender_address = self.__server_socket.recvfrom(
-                                                        self.__recv_length)
-
-            data = data.decode()
-            data = self.data_processing(data)
-
-            self.__current_data = data
-
+        self.__service_thread = threading.Thread(
+                                    target=self.__start_service,
+                                    name="{}-s-udp".format(str(self.__port)))
+        self.__service_thread.start()
 
     def get_ip(self):
         """
@@ -144,28 +159,28 @@ class UDPServer:
         """
         return data
 
-    def get_current_data(self):
+    def get_data(self):
         """
         Returns current value of received data without clearing.
 
         Return:
-        < any > -- received data which is currently in class memory. If
-            data_processing wasn't overridden it will always return decoded
-            < str > type.
+        < tuple > of < float > and < any > -- (unix-time, data), received data
+            and time which area currently in class memory. If data_processing
+            wasn't overridden < any > will be always decoded < tuple > type.
 
         """
         return self.__current_data
 
-    def pop_current_data(self):
+    def pop_data(self):
         """
         Returns current value of received data with clearing. Notice that after
             calling this method, value will be None, until class receives new
             data.
 
         Return:
-        < any > -- received data which is currently in class memory.  If
-            data_processing wasn't overridden it will always return decoded
-            < str > type.
+        < tuple > of < float > and < any > -- (unix-time, data), received data
+            and time which area currently in class memory. If data_processing
+            wasn't overridden < any > will be always decoded < tuple > type.
 
         """
         data = self.__current_data
@@ -175,23 +190,27 @@ class UDPServer:
 
     def stop_service(self):
         """
-        This method stops listening by sending special token to binded port.
+        This method stops listening by sending special token to binded port. If
+            service wasn't connected it sends testing message to port.
 
         """
+        worked = self.__on_air
         self.__on_air = False
 
+        gu.log('Sending message to port {}.'.format(self.__port))
         stop_socket = socket.socket(socket.AF_INET,
                                     socket.SOCK_DGRAM)
 
         stop_socket.sendto(self.__stop_message, (self.__ip, self.__port))
 
-
         if self.__service_thread is not None:
-            gu.log('Waiting for thread joining..')
+            gu.log('Waiting for thread {} joining..'.format(
+                                                self.__service_thread.name))
             self.__service_thread.join()
             self.__service_thread = None
 
-        gu.log('UDPServer {}:{} has been stopped.'.format(
+        if worked:
+            gu.log('UDPServer {}:{} has been stopped.'.format(
                                                     self.__ip, self.__port))
 
 
@@ -209,14 +228,14 @@ def testing_function():
     thread.start()
 
     for i in range(5):
-
+    # while(True):
         log_msg = "\n\tIP/PORT:".ljust(16) + "{ip}:{port}" +\
             "\n\tCurrent data:".ljust(16) + "{data}\n"
 
         log_msg = log_msg.format(
                     ip=us_1.get_ip(),
                     port=str(us_1.get_port()),
-                    data=str(us_1.get_current_data()))
+                    data=str(us_1.get_data()))
 
         gu.log(log_msg)
 
@@ -254,7 +273,7 @@ def thread_testing_function():
         log_msg = log_msg.format(
                     ip=us_1.get_ip(),
                     port=str(us_1.get_port()),
-                    data=str(us_1.get_current_data()))
+                    data=str(us_1.get_data()))
 
         gu.log(log_msg)
 
