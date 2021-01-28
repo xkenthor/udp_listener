@@ -7,6 +7,7 @@ import multiprocessing
 import threading
 import datetime
 import json
+import gzip
 
 _json_default_indent = 3
 
@@ -32,6 +33,39 @@ def log(msg):
 
     print(message)
 
+def write_gzip(path_to_gzip, data, compresslevel=9):
+    """
+    This function writes data to file by gzip module.
+
+    Keyword arguments:
+    path_to_gzip -- < str > path to gzip file.
+    data -- < any > data that will be written.
+
+    """
+    data = json.dumps(data).encode()
+
+    with gzip.open(path_to_gzip, 'wb', compresslevel) as gzip_file:
+        gzip_file.write(data)
+
+
+def read_gzip(path_to_gzip):
+    """
+    This function reads data from file by gzip module.
+
+    Keyword arguments:
+    path_to_gzip -- < str > path to gzip file.
+
+    Return:
+    < any > -- data of file.
+
+    """
+    with gzip.open(path_to_gzip, 'rb') as gzip_file:
+        data = gzip_file.read()
+
+    data = json.loads(data.decode())
+
+    return data
+
 def read_json(path_to_json):
     """
     This function reads json file and return in python dictionary type without
@@ -41,7 +75,7 @@ def read_json(path_to_json):
     path_to_json -- < str > path to json file.
 
     Return:
-    < dict > -- data of json file.
+    < any > -- data of file.
 
     """
     with open(path_to_json, 'r') as json_file:
@@ -51,12 +85,12 @@ def read_json(path_to_json):
 
 def write_json(path_to_json, data, indent=_json_default_indent):
     """
-    This method writes data to json file with specified path. Notice that there
-        won't be any extra data formatting.
+    This function writes data to json file with specified path. Notice that
+        there won't be any extra data formatting.
 
     Keyword arguments:
     path_to_json -- < str > path to json file.
-    data -- < any > data that will be
+    data -- < any > data that will be written.
 
     """
     with open(path_to_json, 'w') as json_file:
