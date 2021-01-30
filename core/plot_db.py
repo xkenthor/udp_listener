@@ -4,6 +4,8 @@ This module provides classes & functions that implements I/O over plot data &
     source object and provides external access.
 
 """
+import threading
+import datetime
 import random
 import time
 import os
@@ -14,6 +16,9 @@ _default_plot_thresh = 10000
 _default_plot_backup = 10000
 
 _template_graph_name = "graph_{}"
+_template_graph_dump_filename = "{date}_{x_start_time}_{duration}"
+_template_date_name = "%Y-%m-%d"
+_template_time_name = "%H-%m-%S"
 
 _template_2dplot_dict = {
     "name": None,
@@ -97,8 +102,7 @@ def cvt_raw2plot(raw_data, split_symbol="&"):
 
     return data_list
 
-
-def concatenate_2dplot_dot(self, plot_object, dot):
+def concatenate_2dplot_dot(plot_object, dot):
     """
     This method concatenates data with plot object.
 
@@ -118,7 +122,7 @@ def concatenate_2dplot_dot(self, plot_object, dot):
     plot_object['x'].append(dot[0])
     plot_object['y'].append(dot[1])
 
-def concatenate_2dplot_dot_list(self, plot_object, dot_list):
+def concatenate_2dplot_dot_list(plot_object, dot_list):
     """
     This method concatenates data with plot object.
 
@@ -157,7 +161,7 @@ class PlotDB:
         if graphs_amount < 1:
             raise IndexError('Specified number of graphs less than 1.')
 
-        if os.path.exist(dump_save_path) != True:
+        if os.path.exists(dump_save_path) != True:
             if dump_save_path == 'dumps':
                 os.mkdir('dumps')
             else:
@@ -213,30 +217,23 @@ class PlotDB:
 
         while self.__on_process:
             received_data = self.__source_object.read_data()
-
             received_data = cvt_raw2plot(received_data)
+
             if len(received_data) != self.__graph_amount:
-                gu.log('[ERROR]: Received data does not match the number' +\
+                gu.log('[ERROR]: Received data does not match the number ' +\
                                         'of graphs. Received data ignored.')
                 continue
 
             for index in range(self.__graph_amount):
-                concatenate_2dplot_data(
+                concatenate_2dplot_dot(
                                 self.__plot_list[index], received_data[index])
 
             self.__crop_plot_object_list()
 
-            # self.dump_plot_object()
-            # Проверить:
-            #   __start_processing
-            #   __start_processing
-            #   stop_updating
-            #   start_processing
-            #   start_processing_thread
-            #
-            #   concatenate_2dplot_dot
-            #   concatenate_2dplot_dot_list
-
+            for plot_object in self.__plot_list:
+                if plot_object['backup_count'] >= self.__backup_count:
+                    self.dump_plot_object(plot_object)
+                    plot_object['backup_count'] = 0
 
     def __crop_plot_object_list(self):
         """
@@ -244,9 +241,9 @@ class PlotDB:
 
         """
         for plot_object in self.__plot_list:
-            self.crop_plot_object(plot_object)
+            self.crop_plot_object(plot_object, {'x', 'y'})
 
-    def crop_plot_object(self, plot_object, axis="x"):
+    def crop_plot_object(self, plot_object, axes={'x', 'y'}):
         """
         This method crops the length of the plot axes to a fixed value.
 
@@ -260,14 +257,18 @@ class PlotDB:
                 "y": < list >,
                 "backup_count": < int >
             }
-        axis -- < str > key of axis of plot_object which will be cropped.
+        axes -- < set > of < str > keys of axis of plot_object needed to be
+            cropped.
 
         """
-        axis_length = len(plot_object[axis])
-        if axis_length > self.__thresh_count:
-            difference = axis_length - self.__thresh_count
+        x_length = len(plot_object['x'])
 
-            plot_object[axis] = plot_object[axis][difference:]
+        if x_length > self.__thresh_count:
+            difference = x_length - self.__thresh_count
+
+            plot_object['x'] = plot_object['x'][difference:]
+            plot_object['y'] = plot_object['y'][difference:]
+
             plot_object['backup_count'] += difference
 
     def dump_plot_object(self, plot_object):
@@ -289,12 +290,29 @@ class PlotDB:
         object_to_save = plot_object.copy()
         object_to_save.pop("backup_count")
 
-        save_path = os.path.join(self.__dump_save_path, object_to_save['name'])
+        utime_start = datetime.datetime.utcfromtimestamp(
+                                                    object_to_save['x'][0])
 
-        if os.path.exist(save_path) != True:
+        name = object_to_save['name']
+        date = utime_start.strftime(_template_date_name)
+        x_start_time = utime_start.strftime(_template_time_name)
+        duration = str(int(object_to_save['x'][-1] - object_to_save['x'][0]))
+
+        save_path = os.path.join(self.__dump_save_path, name)
+
+        if os.path.exists(save_path) != True:
             os.makedirs(save_path)
 
+        save_path = os.path.join(
+            save_path,
+            _template_graph_dump_filename.format(
+                                        name=name,
+                                        date=date,
+                                        x_start_time=x_start_time,
+                                        duration=duration))
+                                        
         gu.write_gzip(save_path, object_to_save, compresslevel=9)
+        # gu.write_json(save_path, object_to_save)
 
     def set_plot_backup(self, backup_count):
         """
@@ -345,7 +363,7 @@ class PlotDB:
 
         self.__start_processing()
 
-    def start_processing_thread():
+    def start_processing_thread(self):
         """
         This method creates thread for processing loop and starts it with
             grabbing data from source object, processing, saving it, backuping
@@ -357,8 +375,8 @@ class PlotDB:
 
         self.__process_thread = threading.Thread(
                         target=self.__start_processing,
-                        name="PDB-processing".format(str(self.__port)))
-        self.__process_thread.start())
+                        name="PDB-processing")
+        self.__process_thread.start()
 
     def stop_updating(self):
         """
