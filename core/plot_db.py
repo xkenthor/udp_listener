@@ -310,7 +310,7 @@ class PlotDB:
                                         date=date,
                                         x_start_time=x_start_time,
                                         duration=duration))
-                                        
+
         gu.write_gzip(save_path, object_to_save, compresslevel=9)
         # gu.write_json(save_path, object_to_save)
 

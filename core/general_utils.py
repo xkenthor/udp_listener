@@ -12,7 +12,7 @@ import gzip
 _json_default_indent = 3
 
 _log_strftime_format = "%H:%M:%S"
-_log_msg_template = "{time} | {mp_name} | {th_name} : {msg}"
+_log_msg_template = "{time} | {mp_name} | {th_name}: {msg}"
 
 def log(msg):
     """
