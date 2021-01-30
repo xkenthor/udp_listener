@@ -44,7 +44,7 @@ def port_aggregate(ip, port, gamount, timeout):
 
 ip = 'localhost'
 port = 9090
-graphs_amount = 3
+graphs_amount = 10
 timeout = 1
 
 
@@ -55,8 +55,8 @@ pa_1_t.start()
 
 pl_1 = pl.UDPServer(ip, port)
 pdb_1 = pdb.PlotDB(pl_1, graphs_amount)
-pdb_1.set_plot_backup(5)
-pdb_1.set_plot_thresh(5)
+pdb_1.set_plot_backup(15)
+pdb_1.set_plot_thresh(15)
 
 pdb_1.start_processing_thread()
 
