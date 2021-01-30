@@ -47,7 +47,6 @@ def write_gzip(path_to_gzip, data, compresslevel=9):
     with gzip.open(path_to_gzip, 'wb', compresslevel) as gzip_file:
         gzip_file.write(data)
 
-
 def read_gzip(path_to_gzip):
     """
     This function reads data from file by gzip module.
