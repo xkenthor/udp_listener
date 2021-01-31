@@ -430,7 +430,7 @@ QScrollBar::sub-page:vertical
           <item>
            <layout class="QVBoxLayout" name="lo_addr">
             <item>
-             <widget class="QLineEdit" name="addr">
+             <widget class="QLineEdit" name="ql_addr">
               <property name="maximumSize">
                <size>
                 <width>165</width>
