@@ -8,6 +8,7 @@ import threading
 import datetime
 import random
 import time
+import json
 import os
 
 import general_utils as gu
@@ -67,8 +68,8 @@ def generate_2dplot_dict(name="unknown", x_label="x", y_label="y", x=[], y=[]):
         "name": name,
         "x_label": x_label,
         "y_label": y_label,
-        "x": x,
-        "y": y
+        "x": x.copy(),
+        "y": y.copy()
         })
 
     return new_plot_dict
@@ -89,14 +90,14 @@ def cvt_raw2plot(raw_data, split_symbol="&"):
         [(time, plot_1_value), (time, plot_2_value), ..]
 
     """
-    time = raw_data[0]
+    utime = raw_data[0]
     values = raw_data[1].split(split_symbol)
 
     data_list = []
 
     for value in values:
         try:
-            data_list.append((time, float(value)))
+            data_list.append((utime, float(value)))
         except Exception as error:
             gu.log("[ERROR]: "+error.__str__())
 
@@ -119,6 +120,10 @@ def concatenate_2dplot_dot(plot_object, dot):
         concatenated in the following format: (x, y).
 
     """
+    # if len(plot_object['x']) != 0:
+    #     if plot_object['x'][-1] == dot[0]:
+    #         return
+
     plot_object['x'].append(dot[0])
     plot_object['y'].append(dot[1])
 
@@ -312,7 +317,6 @@ class PlotDB:
                                         duration=duration))
 
         gu.write_gzip(save_path, object_to_save, compresslevel=9)
-        # gu.write_json(save_path, object_to_save)
 
     def set_plot_backup(self, backup_count):
         """
@@ -340,7 +344,7 @@ class PlotDB:
 
         self.__thresh_count = thresh_count
 
-    def get_graph_list(self):
+    def get_plot_list(self):
         """
         This method returns list of all graphs.
 
@@ -394,8 +398,6 @@ class PlotDB:
 
         gu.log("PlotDB processing has been stopped.")
 
-def main():
-    pt_1 = PlotDB(str, 1)
 
 if __name__ == "__main__":
-    main()
+    pass
