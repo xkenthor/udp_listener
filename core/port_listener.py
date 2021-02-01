@@ -12,6 +12,78 @@ import general_utils as gu
 _default_ip = 'localhost'
 _default_port = 9090
 
+def check_addr_correctness(addr):
+    """
+    This function checks the correctness of the full address.
+
+    Keyword arguments:
+    addr -- < str > address that will be checked in the following format:
+        ip:port.
+
+    Return:
+    < bool > -- True/False, error/success.
+
+    """
+    try:
+        addr = addr.split(':')
+
+        if len(addr) != 2:
+            raise TypeError('Address is not full.')
+
+        if check_ip_correctness(addr[0]):
+            raise TypeError('IP is incorrect.')
+
+        if check_port_correctness(addr[1]):
+            raise TypeError('PORT is incorrect.')
+
+    except Exception as error:
+        gu.log("[ERROR]: {}".format(error.__str__()))
+        return True
+
+    return False
+
+def check_ip_correctness(ip):
+    """
+    This method checks the spelling of the ip address.
+
+    Keyword arguments:
+    ip -- < str > ip - address that will be checked.
+
+    Return:
+    < bool > -- True/False, error/success.
+
+    """
+    if ip == 'localhost':
+        return False
+        
+    try:
+        socket.inet_aton(ip)
+
+    except Exception:
+        return True
+
+    return False
+
+def check_port_correctness(port):
+    """
+    This method checks the spelling of the port address.
+
+
+    Return:
+    < bool > -- True/False, error/success.
+
+    """
+    try:
+        port = int(port)
+
+        if port < 0 or port > 65535:
+            raise ValueError('Port is out of range.')
+
+    except Exception:
+        return True
+
+    return False
+
 class UDPServer:
 
     def __init__(self, ip, port):
@@ -37,6 +109,11 @@ class UDPServer:
         self.__stop_message = "0".encode()
 
         self.__current_data = None
+
+    def __reinitialize_port_listener(self):
+        """
+
+        """
 
     def __check_status(self):
         """
@@ -212,7 +289,6 @@ class UDPServer:
         if worked:
             gu.log('UDPServer {}:{} has been stopped.'.format(
                                                     self.__ip, self.__port))
-
 
 def testing_function():
     """
