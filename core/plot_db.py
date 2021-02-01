@@ -8,7 +8,6 @@ import threading
 import datetime
 import random
 import time
-import json
 import os
 
 import general_utils as gu
@@ -105,7 +104,7 @@ def cvt_raw2plot(raw_data, split_symbol="&"):
 
 def concatenate_2dplot_dot(plot_object, dot):
     """
-    This method concatenates data with plot object.
+    This function concatenates data with plot object.
 
     Keyword arguments:
     plot_object -- < dict > plot object in the following format:
@@ -129,7 +128,7 @@ def concatenate_2dplot_dot(plot_object, dot):
 
 def concatenate_2dplot_dot_list(plot_object, dot_list):
     """
-    This method concatenates data with plot object.
+    This function concatenates data with plot object.
 
     Keyword arguments:
     plot_object -- < dict > plot object in the following format:
@@ -318,6 +317,34 @@ class PlotDB:
 
         gu.write_gzip(save_path, object_to_save, compresslevel=9)
 
+    def set_source_object(self, source_object):
+        """
+        This method closes connection with old source_object, drops it and
+            take a new one.
+
+        Keyword arguments:
+        source_object -- < any > object from which this class will read plot
+            values. Data source object must have .get_data() method.
+
+        """
+        on_process = False
+        s_thread = False
+
+        if self.__on_process:
+            on_process = True
+
+            if self.__process_thread is not None:
+                s_thread = True
+
+        self.stop_processing()
+        self.__source_object = source_object
+
+        if on_process:
+            if s_thread:
+                self.start_processing_thread()
+            else:
+                self.start_processing()
+
     def set_plot_backup(self, backup_count):
         """
         This method changes the value required for the backup.
@@ -382,7 +409,7 @@ class PlotDB:
                         name="PDB-processing")
         self.__process_thread.start()
 
-    def stop_updating(self):
+    def stop_processing(self):
         """
         This method stops processing data loop.
 
