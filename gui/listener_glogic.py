@@ -3,6 +3,7 @@ This module implements backend logic for graphical shell and connects it with
     core modules.
 
 """
+import threading
 import random
 import time
 import sys
@@ -23,17 +24,24 @@ import port_listener as ptlr
 
 class ListenerBackEnd():
 
-    def __init__(self, ip, port, dump_save_path):
+    def __init__(self, settings_path):
         """
         This method implements backend logic for graphical shell.
 
         """
+        settings_dict = gu.read_json(settings_path)
+        self.__th_lock_settings_file = threading.Lock()
+
+        self.__settings_path = settings_path
+        self.__settings_dict = settings_dict
+
         self.__graph_amount = 6
-        self.__port_listener = ptlr.UDPServer(ip, port)
+        self.__port_listener = ptlr.UDPServer(self.__settings_dict['ip'],
+                                            self.__settings_dict['port'])
+
         self.__plot_db = ptdb.PlotDB(self.__port_listener,
                                     self.__graph_amount,
-                                    dump_save_path)
-        # self.__plot_db.set_plot_thresh(20)
+                                    self.__settings_dict['dump_save_path'])
 
         self.__plot_db.start_processing_thread()
 
@@ -97,6 +105,15 @@ class ListenerBackEnd():
         """
         self.__ui.btn_addr.clicked.connect(self.__clicked_btn_addr)
 
+    def __dump_settings(self):
+        """
+        This method simply saves current settings_dict to settings file.
+
+        """
+        self.__th_lock_settings_file.acquire()
+        gu.write_json(self.__settings_path, self.__settings_dict)
+        self.__th_lock_settings_file.release()
+
     def __reinitialize_port_listener(self, ip, port):
         """
         This method initializes new port listener.
@@ -111,7 +128,10 @@ class ListenerBackEnd():
 
                 self.__port_listener = new_listener
                 self.__plot_db.set_source_object(self.__port_listener)
-                # self.__plot_db.start_processing_thread()
+
+                self.__settings_dict['ip'] = ip
+                self.__settings_dict['port'] = port
+                self.__dump_settings()
 
             except Exception as error:
                 gu.log('[ERROR]: {}'.format(error.__str__()))
@@ -224,12 +244,8 @@ def main():
 
     app = QtWidgets.QApplication(sys.argv)
 
-    settings_dict = gu.read_json('../settings/defaults.json')
 
-    lbe_1 = ListenerBackEnd(
-                    settings_dict['ip'],
-                    settings_dict['port'],
-                    settings_dict['dump_save_path'])
+    lbe_1 = ListenerBackEnd('../settings/defaults.json')
 
     sys.exit(app.exec_())
 
