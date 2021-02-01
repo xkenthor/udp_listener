@@ -80,6 +80,14 @@ class ListenerBackEnd():
         self.__update_qline(self.__ui.ql_addr, text)
         # self.__update_plot_widget_list()
 
+    def __stop_processing(self):
+        """
+        This method stops plot processing thread by calling
+            plot_db.stop_processing method.
+
+        """
+        self.__plot_db.stop_processing()
+
     def __update_qline(self, qline_widget, text):
         """
         This method fills qline_widget with text.
