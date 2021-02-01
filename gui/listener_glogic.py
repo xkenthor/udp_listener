@@ -20,6 +20,7 @@ import general_utils as gu
 import plot_db as ptdb
 import port_listener as ptlr
 
+
 class ListenerBackEnd():
 
     def __init__(self, ip, port, dump_save_path):
@@ -51,6 +52,7 @@ class ListenerBackEnd():
             self.__ui.pt_6
         )
 
+        self.__init_all_connections()
         self.__init_all_widgets()
 
         self.__data_list_tuple = (
@@ -74,11 +76,49 @@ class ListenerBackEnd():
         This method reinitializes all widgets in the shell.
 
         """
+        self.__load_qline()
+        # self.__update_plot_widget_list()
+
+    def __load_qline(self):
+        """
+        This method updates qline widtget by reading internal variable.
+
+        """
         text = "{}:{}".format(str(self.__port_listener.get_ip()),
                             str(self.__port_listener.get_port()))
 
         self.__update_qline(self.__ui.ql_addr, text)
-        # self.__update_plot_widget_list()
+
+    def __init_all_connections(self):
+        """
+        This method initializes all connections between widget and class
+            methods.
+
+        """
+        self.__ui.btn_addr.clicked.connect(self.__clicked_btn_addr)
+
+    def __reinitialize_port_listener(self, ip, port):
+        """
+        This method initializes new port listener.
+
+        """
+        if self.__port_listener is not None:
+
+            # initializes new listener object first because if it fails, old
+            # one won't be touched
+            try:
+                new_listener = ptlr.UDPServer(ip, port)
+
+                self.__port_listener = new_listener
+                self.__plot_db.set_source_object(self.__port_listener)
+                # self.__plot_db.start_processing_thread()
+
+            except Exception as error:
+                gu.log('[ERROR]: {}'.format(error.__str__()))
+                self.__load_qline()
+
+        else:
+            self.__port_listener = ptlr.UDPServer(ip, port)
 
     def __stop_processing(self):
         """
@@ -166,6 +206,19 @@ class ListenerBackEnd():
 
         plot_widget.plot(x, y)
 
+    def __clicked_btn_addr(self):
+        """
+        This method automatically called then address button is clicked.
+
+        """
+        text = self.__ui.ql_addr.text()
+
+        if ptlr.check_addr_correctness(text):
+            self.__load_qline()
+            return
+        else:
+            text = text.split(':')
+            self.__reinitialize_port_listener(text[0], text[1])
 
 def main():
 
