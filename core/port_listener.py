@@ -37,7 +37,7 @@ def check_addr_correctness(addr):
             raise TypeError('PORT is incorrect.')
 
     except Exception as error:
-        gu.log("[ERROR]: {}".format(error.__str__()))
+        gu.log(error.__str__(), 1)
         return True
 
     return False
@@ -55,7 +55,7 @@ def check_ip_correctness(ip):
     """
     if ip == 'localhost':
         return False
-        
+
     try:
         socket.inet_aton(ip)
 
@@ -125,14 +125,14 @@ class UDPServer:
 
         """
         if self.__service_thread is not None:
-            gu.log("[ERROR]: Service thread is still working. If you want" +\
-                                    " to restart call stop_service() first.")
+            gu.log("Service thread is still working. If you want" +\
+                                " to restart call stop_service() first.", 1)
 
             return True
 
         if self.__on_air:
-            gu.log("[ERROR]: Service is currently on air. If you want" +\
-                                    "to restart call stop_service() first.")
+            gu.log("Service is currently on air. If you want" +\
+                                    "to restart call stop_service() first.", 1)
 
             return True
 
