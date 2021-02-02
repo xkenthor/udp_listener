@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>854</width>
-    <height>956</height>
+    <width>824</width>
+    <height>1003</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>130</width>
+    <height>0</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Plot listener</string>
@@ -423,14 +429,30 @@ QScrollBar::sub-page:vertical
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
      <layout class="QVBoxLayout" name="lo_main">
+      <property name="spacing">
+       <number>6</number>
+      </property>
       <item>
-       <layout class="QVBoxLayout" name="lo_bar">
+       <layout class="QHBoxLayout" name="lo_bar">
         <item>
-         <layout class="QHBoxLayout" name="lo_sbar_1">
+         <layout class="QVBoxLayout" name="lo_addr">
           <item>
-           <layout class="QVBoxLayout" name="lo_addr">
+           <widget class="QLabel" name="lb_addr">
+            <property name="text">
+             <string>Адрес прослушивания:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="lo_1_addr">
             <item>
-             <widget class="QLineEdit" name="ql_addr">
+             <widget class="QLineEdit" name="le_addr">
+              <property name="minimumSize">
+               <size>
+                <width>155</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="maximumSize">
                <size>
                 <width>165</width>
@@ -449,12 +471,14 @@ QScrollBar::sub-page:vertical
               </property>
              </widget>
             </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="lo_btn_addr">
             <item>
              <widget class="QPushButton" name="btn_addr">
+              <property name="maximumSize">
+               <size>
+                <width>130</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="text">
                <string>Переподключиться</string>
               </property>
@@ -463,21 +487,94 @@ QScrollBar::sub-page:vertical
            </layout>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox">
+           <spacer name="spr_addr">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <spacer name="sp_bar">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="lo_oset">
+          <item>
+           <widget class="QLabel" name="lb_buffer_size">
+            <property name="maximumSize">
+             <size>
+              <width>150</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Размер буферизации:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="lo_buffer_size">
+            <item>
+             <widget class="QLineEdit" name="le_buffer_size">
+              <property name="maximumSize">
+               <size>
+                <width>50</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>99999</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_buffer_size">
+              <property name="maximumSize">
+               <size>
+                <width>70</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Изменить</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="cb_history">
             <property name="text">
              <string>Сохранять историю</string>
             </property>
            </widget>
           </item>
           <item>
-           <spacer name="horizontalSpacer">
+           <spacer name="lo_oset_1">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Vertical</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>20</width>
+              <height>40</height>
              </size>
             </property>
            </spacer>
@@ -491,7 +588,10 @@ QScrollBar::sub-page:vertical
         <item>
          <layout class="QVBoxLayout" name="lo_pt_1">
           <item>
-           <widget class="QLabel" name="label_pt_1">
+           <widget class="QLabel" name="lb_pt_1">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
             <property name="text">
              <string>График №1</string>
             </property>
@@ -512,7 +612,7 @@ QScrollBar::sub-page:vertical
         <item>
          <layout class="QVBoxLayout" name="lo_pt_2">
           <item>
-           <widget class="QLabel" name="label_pt_2">
+           <widget class="QLabel" name="lb_pt_2">
             <property name="text">
              <string>График №2</string>
             </property>
@@ -537,7 +637,7 @@ QScrollBar::sub-page:vertical
         <item>
          <layout class="QVBoxLayout" name="lo_pt_3">
           <item>
-           <widget class="QLabel" name="label_pt_3">
+           <widget class="QLabel" name="lb_pt_3">
             <property name="text">
              <string>График №3</string>
             </property>
@@ -558,7 +658,7 @@ QScrollBar::sub-page:vertical
         <item>
          <layout class="QVBoxLayout" name="lo_pt_4">
           <item>
-           <widget class="QLabel" name="label_pt_4">
+           <widget class="QLabel" name="lb_pt_4">
             <property name="text">
              <string>График №4</string>
             </property>
@@ -583,7 +683,7 @@ QScrollBar::sub-page:vertical
         <item>
          <layout class="QVBoxLayout" name="lo_pt_5">
           <item>
-           <widget class="QLabel" name="label_pt_5">
+           <widget class="QLabel" name="lb_pt_5">
             <property name="text">
              <string>График №5</string>
             </property>

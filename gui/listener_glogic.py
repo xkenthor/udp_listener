@@ -34,18 +34,26 @@ class ListenerBackEnd():
 
         self.__settings_path = settings_path
         self.__settings_dict = settings_dict
-
         self.__graph_amount = 6
-        self.__port_listener = ptlr.UDPServer(self.__settings_dict['ip'],
-                                            self.__settings_dict['port'])
 
-        self.__plot_db = ptdb.PlotDB(self.__port_listener,
-                                    self.__graph_amount,
-                                    self.__settings_dict['dump_save_path'])
+        self.__port_listener = ptlr.UDPServer(
+                                self.__settings_dict['ip'],
+                                self.__settings_dict['port'])
+
+        self.__plot_db = ptdb.PlotDB(
+                                self.__port_listener,
+                                self.__graph_amount,
+                                self.__settings_dict['dump_save_dir'],
+                                self.__settings_dict['dumping_enabled'],
+                                self.__settings_dict['default_plot_backup'],
+                                self.__settings_dict['default_plot_thresh'])
+
+        self.__set_buffer_size(self.__settings_dict['buffer_size'])
 
         self.__plot_db.start_processing_thread()
 
         self.__main_window = QtWidgets.QMainWindow()
+        self.__main_window.resize(824, 1005)
         self.__ui = listener_gshell.Ui_MainWindow()
 
         self.__ui.setupUi(self.__main_window)
@@ -79,23 +87,13 @@ class ListenerBackEnd():
 
         self.__main_window.show()
 
-    def __init_all_widgets(self):
+    def __del__(self):# exit__(self, exc_type, exc_value, traceback):
         """
-        This method reinitializes all widgets in the shell.
+        This method stops processing port and plot_db.
 
         """
-        self.__load_qline()
-        # self.__update_plot_widget_list()
-
-    def __load_qline(self):
-        """
-        This method updates qline widtget by reading internal variable.
-
-        """
-        text = "{}:{}".format(str(self.__port_listener.get_ip()),
-                            str(self.__port_listener.get_port()))
-
-        self.__update_qline(self.__ui.ql_addr, text)
+        self.__plot_db.stop_processing()
+        self.__port_listener.stop_service()
 
     def __init_all_connections(self):
         """
@@ -104,6 +102,76 @@ class ListenerBackEnd():
 
         """
         self.__ui.btn_addr.clicked.connect(self.__clicked_btn_addr)
+        self.__ui.btn_buffer_size.clicked.connect(
+                                                self.__clicked_btn_buffer_size)
+        self.__ui.cb_history.clicked.connect(self.__clicked_cb_history)
+
+    def __init_all_widgets(self):
+        """
+        This method reinitializes all widgets in the shell.
+
+        """
+        # self.__update_plot_widget_list()
+        self.__load_le_addr()
+        self.__load_le_buffer_size()
+        self.__load_cb_history()
+
+    def __load_le_addr(self):
+        """
+        This method updates le_addr widget by reading internal variable.
+
+        """
+        text = "{}:{}".format(str(self.__port_listener.get_ip()),
+                            str(self.__port_listener.get_port()))
+
+        self.__update_line_edit(self.__ui.le_addr, text)
+
+    def __load_le_buffer_size(self):
+        """
+        This method updates le_buffer_size widget by reading internal variable.
+
+        """
+        self.__update_line_edit(self.__ui.le_buffer_size,
+                                    str(self.__settings_dict['buffer_size']))
+
+    def __load_cb_history(self):
+        """
+        This method updates cb_history widget by reading internal variable.
+
+        """
+        if self.__settings_dict['dumping_enabled']:
+            self.__ui.cb_history.setChecked(True)
+        else:
+            self.__ui.cb_history.setChecked(False)
+
+    def __set_buffer_size(self, buffer_size):
+        """
+        This method changes buffer_size, checks its range and saves it to
+            settings_dict.
+
+        buffer_size -- < int > new buffer_size.0
+
+        """
+        lower_limit = 3
+        upper_limit = 10000
+
+        try:
+            buffer_size = int(buffer_size)
+
+            if buffer_size < lower_limit or buffer_size > upper_limit:
+                raise ValueError(
+                    'Buffer size is out of [{}, {}] limit.'.format(
+                                                    lower_limit, upper_limit))
+
+            self.__buffer_size = buffer_size
+            self.__settings_dict['buffer_size'] = buffer_size
+
+            self.__dump_settings()
+
+        except Exception as error:
+            gu.log(error.__str__(), 1)
+
+            self.__load_le_buffer_size()
 
     def __dump_settings(self):
         """
@@ -131,11 +199,11 @@ class ListenerBackEnd():
 
                 self.__settings_dict['ip'] = ip
                 self.__settings_dict['port'] = port
-                self.__dump_settings()
+
 
             except Exception as error:
                 gu.log('[ERROR]: {}'.format(error.__str__()))
-                self.__load_qline()
+                self.__load_le_addr()
 
         else:
             self.__port_listener = ptlr.UDPServer(ip, port)
@@ -148,16 +216,16 @@ class ListenerBackEnd():
         """
         self.__plot_db.stop_processing()
 
-    def __update_qline(self, qline_widget, text):
+    def __update_line_edit(self, line_edit_widget, text):
         """
-        This method fills qline_widget with text.
+        This method fills line_edit_widget with text.
 
         Keyword arguments:
-        qline_widget -- < > qline widget that will be filled.
+        line_edit_widget -- < > line_edit widget that will be filled.
         text -- < str > text that will fill widget.
 
         """
-        qline_widget.setText(text)
+        line_edit_widget.setText(text)
 
     def __update_data_line_list(self):
         """
@@ -171,7 +239,7 @@ class ListenerBackEnd():
                     self.__data_list_tuple[index],
                     plot_object_list[index])
 
-    def __update_data_line(self, data_line, plot_object, axis_range=100):
+    def __update_data_line(self, data_line, plot_object):
         """
         This method updates plot data line for realtime visualization.
 
@@ -179,14 +247,13 @@ class ListenerBackEnd():
         data_line -- < pyqtgraph.graphicsItems.PlotDataItem.PlotDataItem > data
             line that will be updated.
         plot_object -- < plot_db.PlotDB > plot object that will be plotted.
-        ***
 
         """
-        x = plot_object['x'][-axis_range:]
-        y = plot_object['y'][-axis_range:]
+        x = plot_object['x'][-self.__buffer_size:]
+        y = plot_object['y'][-self.__buffer_size:]
 
-        for index in range(len(x)):
-            x[index] = x[index] * 1000000
+        # for index in range(len(x)):
+        #     x[index] = x[index] * 1000000
 
         # plot_widget.setLabel('bottom', plot_widget['x_label'])
         # plot_widget.setLabel('left', plot_object['y_label'])
@@ -205,21 +272,20 @@ class ListenerBackEnd():
                     self.__plot_tuple[index],
                     plot_object_list[index])
 
-    def __plot_graph(self, plot_widget, plot_object, range=200):
+    def __plot_graph(self, plot_widget, plot_object):
         """
         This method plots the graph object on the widget.
 
         Keyword arguments:
         plot_widget -- < pyqtgraph.PlotWidget > plot widget that will be
             updated.
-
         plot_object -- < plot_db.PlotDB > plot object that will be plotted.
 
         """
         plot_widget.clear()
 
-        x = plot_object['x'][-range:]
-        y = plot_object['y'][-range:]
+        x = plot_object['x'][-self.__buffer_size:]
+        y = plot_object['y'][-self.__buffer_size:]
 
         plot_widget.setLabel('bottom', plot_object['x_label'])
         plot_widget.setLabel('left', plot_object['y_label'])
@@ -231,19 +297,38 @@ class ListenerBackEnd():
         This method automatically called then address button is clicked.
 
         """
-        text = self.__ui.ql_addr.text()
+        text = self.__ui.le_addr.text()
 
         if ptlr.check_addr_correctness(text):
-            self.__load_qline()
+            self.__load_le_addr()
             return
         else:
             text = text.split(':')
             self.__reinitialize_port_listener(text[0], text[1])
 
+    def __clicked_cb_history(self):
+        """
+        This method automatically called then history checkbox is clicked.
+
+        """
+        flag = self.__ui.cb_history.isChecked()
+
+        if flag != self.__settings_dict['dumping_enabled']:
+            self.__plot_db.set_dumping_enable_flag(flag)
+            self.__settings_dict['dumping_enabled'] = flag
+            self.__dump_settings()
+
+    def __clicked_btn_buffer_size(self):
+        """
+        This method automatically called then buffer button is clicked.
+
+        """
+        text = self.__ui.le_buffer_size.text()
+        self.__set_buffer_size(text)
+
 def main():
 
     app = QtWidgets.QApplication(sys.argv)
-
 
     lbe_1 = ListenerBackEnd('../settings/defaults.json')
 
