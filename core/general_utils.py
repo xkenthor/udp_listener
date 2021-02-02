@@ -12,15 +12,22 @@ import gzip
 _json_default_indent = 3
 
 _log_strftime_format = "%H:%M:%S"
-_log_msg_template = "{time} | {mp_name} | {th_name}: {msg}"
+_log_msg_template = "{time} | {mp_name} | {th_name} |> {prefix}{msg}"
 
-def log(msg):
+_log_prefix_tuple = (
+    "",
+    "[ERROR]: "
+)
+
+def log(msg, code=0):
     """
     This function logs generated messages in certain format and displays
         messages if that feature is turned on.
 
     Keyword arguments:
     msg -- < str > message that will be logged.
+    code -- < int > code of message prefix. For example 0 - nothing, 1 - error.
+        Full prefix tuple listed in _log_prefix_tuple variable.
 
     """
     current_time = datetime.datetime.now().strftime(_log_strftime_format)
@@ -29,6 +36,7 @@ def log(msg):
                         mp_name=multiprocessing.current_process().name,
                         th_name=threading.current_thread().name,
                         time=current_time,
+                        prefix=_log_prefix_tuple[code],
                         msg=msg)
 
     print(message)
