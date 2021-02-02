@@ -1,5 +1,9 @@
 {
-    "ip": "localhost",
-    "port": 9090,
-    "dump_save_path": "dumps"
+   "ip": "localhost",
+   "port": "9090",
+   "dump_save_dir": "dumps",
+   "dumping_enabled": true,
+   "default_plot_backup": 50,
+   "default_plot_thresh": 10000,
+   "buffer_size": 900
 }
