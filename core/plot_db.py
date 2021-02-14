@@ -73,6 +73,27 @@ def generate_2dplot_dict(name="unknown", x_label="x", y_label="y", x=[], y=[]):
 
     return new_plot_dict
 
+def cvt_raw2plot_custom(raw_data):
+    """
+    This function is custom realisation of cvt_raw2plot function. It takes as
+        argument < tuple > of < float > & < bytes >. Bytes must be in the
+        following format:
+            [< 0x00000000, 0x00000000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+            0x0000, 0x0000, 0x0000 >, < ... >, ... x40]
+        respectively:
+            [ < number_in_the_package ,  number_of_the_measurement ,
+             1st_channel ,  2nd_channel ,  4th_channel ,  5th_channel ,
+             6th_channel ,  7th_channel ,  8th_channel >, < ... >, ... x40]
+
+    Notice, that 5th and 6th channels will be ignored, so 7th and 8th will be
+        placed on their positions.
+
+    Return:
+    < list > of < tuple > -- processed data in the following format:
+        [(time, plot_1_value), (time, plot_2_value), ..]
+
+    """
+
 def cvt_raw2plot(raw_data, split_symbol="&"):
     """
     This function converts raw data received by source object to format
@@ -226,6 +247,7 @@ class PlotDB:
 
         while self.__on_process:
             received_data = self.__source_object.read_data()
+            # received_data = received_data.decode()
             received_data = cvt_raw2plot(received_data)
 
             if len(received_data) != self.__graph_amount:
