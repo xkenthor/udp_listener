@@ -162,7 +162,7 @@ class UDPServer:
         data, sender_address = self.__server_socket.recvfrom(
                                                     self.__recv_length)
 
-        data = data.decode()
+        # data = data.decode()
         data = self.data_processing(data)
 
         return (time.time(), data)
@@ -243,7 +243,7 @@ class UDPServer:
         Return:
         < tuple > of < float > and < any > -- (unix-time, data), received data
             and time which area currently in class memory. If data_processing
-            wasn't overridden < any > will be always decoded < tuple > type.
+            wasn't overridden < any > will be always < tuple > type.
 
         """
         return self.__current_data
@@ -257,7 +257,7 @@ class UDPServer:
         Return:
         < tuple > of < float > and < any > -- (unix-time, data), received data
             and time which area currently in class memory. If data_processing
-            wasn't overridden < any > will be always decoded < tuple > type.
+            wasn't overridden < any > will be always < tuple > type.
 
         """
         data = self.__current_data
