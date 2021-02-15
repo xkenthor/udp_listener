@@ -68,18 +68,14 @@ def msg_generator(package_number):
     return msg_bytes
 
 msg = msg_generator(0)
-print(msg)
-print(sys.getsizeof(msg))
 
-print()
-print(decode_msg(msg))
 
-#ip = 'localhost'
-#port = 9090
-#sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-#timer = 1
+ip = 'localhost'
+port = 9090
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+timer = 0.1
 #
-#for i in range(0,-1000000,-1):
+# for i in range(0,-1000000,-1):
 #    value = i/10
 #    try:
 #        3print(value, value.to_bytes(2, byteorder='big', signed=True))
@@ -88,14 +84,9 @@ print(decode_msg(msg))
 #        input()
 
 
-# while True:
-#     msg = ""
-#     for i in range(random.randint(1,5)):
-#         msg += (str(random.randint(0, 100))+"&")
-#
-#     msg = msg[:-1]
-#     msg = msg.encode()
-#
-#     sock.sendto(msg, (ip, port))
-#
-#     time.sleep(timer)
+while True:
+    msg = msg_generator(0)
+
+    sock.sendto(msg, (ip, port))
+
+    time.sleep(timer)

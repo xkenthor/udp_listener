@@ -41,20 +41,6 @@ def log(msg, code=0):
 
     print(message)
 
-def write_gzip(path_to_gzip, data, compresslevel=9):
-    """
-    This function writes data to file by gzip module.
-
-    Keyword arguments:
-    path_to_gzip -- < str > path to gzip file.
-    data -- < any > data that will be written.
-
-    """
-    data = json.dumps(data).encode()
-
-    with gzip.open(path_to_gzip, 'wb', compresslevel) as gzip_file:
-        gzip_file.write(data)
-
 def read_gzip(path_to_gzip):
     """
     This function reads data from file by gzip module.
@@ -72,6 +58,20 @@ def read_gzip(path_to_gzip):
     data = json.loads(data.decode())
 
     return data
+
+def write_gzip(path_to_gzip, data, compresslevel=9):
+    """
+    This function writes data to file by gzip module.
+
+    Keyword arguments:
+    path_to_gzip -- < str > path to gzip file.
+    data -- < any > data that will be written.
+
+    """
+    data = json.dumps(data).encode()
+
+    with gzip.open(path_to_gzip, 'wb', compresslevel) as gzip_file:
+        gzip_file.write(data)
 
 def read_json(path_to_json):
     """

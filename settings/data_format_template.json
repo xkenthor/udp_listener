@@ -1,0 +1,17 @@
+{
+  "records_per_package": 40,
+  "template_record_bsize_tuple": [
+    4,
+    4,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+  ],
+  "byteorder": "little",
+  "signed":true
+}

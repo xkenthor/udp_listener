@@ -5,5 +5,5 @@
    "dumping_enabled": true,
    "default_plot_backup": 50,
    "default_plot_thresh": 10000,
-   "buffer_size": 900
+   "buffer_size": 40
 }

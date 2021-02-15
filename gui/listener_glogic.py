@@ -29,6 +29,9 @@ class ListenerBackEnd():
         This method implements backend logic for graphical shell.
 
         """
+        # GIGACRUTCH
+        self.__counter_list = [0,0,0,0,0,0]
+
         settings_dict = gu.read_json(settings_path)
         self.__th_lock_settings_file = threading.Lock()
 
@@ -237,9 +240,10 @@ class ListenerBackEnd():
         for index in range(self.__graph_amount):
             self.__update_data_line(
                     self.__data_list_tuple[index],
-                    plot_object_list[index])
+                    plot_object_list[index],
+                    index)
 
-    def __update_data_line(self, data_line, plot_object):
+    def __update_data_line(self, data_line, plot_object, plot_index):
         """
         This method updates plot data line for realtime visualization.
 
@@ -249,8 +253,15 @@ class ListenerBackEnd():
         plot_object -- < plot_db.PlotDB > plot object that will be plotted.
 
         """
-        x = plot_object['x'][-self.__buffer_size:]
+        # x = plot_object['x'][-self.__buffer_size:]
         y = plot_object['y'][-self.__buffer_size:]
+
+        modifier = 0.00001
+        x = list(range(len(y)))
+        for index in x:
+            x[index] = x[index]*modifier + self.__counter_list[plot_index]
+
+        self.__counter_list[plot_index] += modifier*len(y)
 
         # for index in range(len(x)):
         #     x[index] = x[index] * 1000000
