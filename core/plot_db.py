@@ -12,6 +12,17 @@ import os
 
 import general_utils as gu
 
+_custom_settings = gu.read_json('../settings/data_format_template.json')
+_records_per_package = _custom_settings['records_per_package']
+_template_record_bsize_tuple = _custom_settings['template_record_bsize_tuple']
+
+_template_record_bsize = 0
+for bsize in _template_record_bsize_tuple:
+    _template_record_bsize += bsize
+
+_byteorder = _custom_settings['byteorder']
+_signed = _custom_settings['signed']
+
 _default_plot_thresh = 10000
 _default_plot_backup = 10000
 
@@ -73,6 +84,45 @@ def generate_2dplot_dict(name="unknown", x_label="x", y_label="y", x=[], y=[]):
 
     return new_plot_dict
 
+def decode_msg(msg):
+    """
+    This function decodes raw bytes message.
+
+    Global arguments:
+    _records_per_package -- < int > number of records message includes.
+    _byteorder -- < str > -- big/little.
+    _signed -- < bool > -- True/False.
+    _template_record_bsize_tuple -- < tuple > of bytes length for each value in
+        measurement.
+    _template_record_bsize -- < int > size of one record in bytes.
+
+    Keyword arguments:
+    msg -- < bytes > raw bytes message.
+
+    Return:
+    < list > -- list of decoded records.
+
+    """
+    result_list = []
+
+    for record_num in range(_records_per_package):
+        r_pos = record_num * _template_record_bsize
+        record_slice = msg[r_pos:r_pos+_template_record_bsize]
+
+        record_list = []
+        b_pos = 0
+
+        for bsize in _template_record_bsize_tuple:
+            value = record_slice[b_pos:b_pos+bsize]
+            value = int.from_bytes(value, byteorder=_byteorder, signed=_signed)
+
+            record_list.append(value)
+            b_pos += bsize
+
+        result_list.append(record_list)
+
+    return result_list
+
 def cvt_raw2plot_custom(raw_data):
     """
     This function is custom realisation of cvt_raw2plot function. It takes as
@@ -89,10 +139,33 @@ def cvt_raw2plot_custom(raw_data):
         placed on their positions.
 
     Return:
-    < list > of < tuple > -- processed data in the following format:
-        [(time, plot_1_value), (time, plot_2_value), ..]
+    < list > of < list > of < tuple > -- processed data in the following
+        format: [[(time, plot_1_value), (time, plot_2_value), ..], .. ]
 
     """
+    received_time = raw_data[0]
+    data_list = []
+
+    try:
+        records_list = decode_msg(raw_data[1])
+        difference_time = (time.time() - received_time) / _records_per_package
+
+        for record in records_list:
+            record_data_list = []
+
+            # ignoring 5, 6 channels *** [:) ***
+            record = record[2:6] + record[8:]
+
+            for measurement in record:
+                record_data_list.append((received_time, float(measurement)))
+
+            data_list.append(record_data_list)
+            received_time += difference_time
+
+    except Exception as error:
+        gu.log(error.__str__(), 1)
+
+    return data_list
 
 def cvt_raw2plot(raw_data, split_symbol="&"):
     """
@@ -118,6 +191,7 @@ def cvt_raw2plot(raw_data, split_symbol="&"):
     for value in values:
         try:
             data_list.append((utime, float(value)))
+
         except Exception as error:
             gu.log(error.__str__(), 1)
 
@@ -246,20 +320,25 @@ class PlotDB:
         self.__on_process = True
 
         while self.__on_process:
-            received_data = self.__source_object.read_data()
+            # received_data = self.__source_object.read_data()
             # received_data = received_data.decode()
-            received_data = cvt_raw2plot(received_data)
+            # received_data = cvt_raw2plot(received_data)
+            received_data_list = self.__source_object.read_data()
+            received_data_list = cvt_raw2plot_custom(received_data_list)
 
-            if len(received_data) != self.__graph_amount:
-                gu.log('Received data does not match the number ' +\
+            print(self.__plot_list[0]['backup_count'])
+            for received_data in received_data_list:
+                if len(received_data) != self.__graph_amount:
+                    gu.log('Received data does not match the number ' +\
                                         'of graphs. Received data ignored.', 1)
-                continue
+                    continue
 
-            for index in range(self.__graph_amount):
-                concatenate_2dplot_dot(
+                for index in range(self.__graph_amount):
+                    concatenate_2dplot_dot(
                                 self.__plot_list[index], received_data[index])
 
-            self.__crop_plot_object_list()
+            print(self.__plot_list[0]['backup_count'])
+            input()
 
             for plot_object in self.__plot_list:
 
@@ -269,6 +348,8 @@ class PlotDB:
                         self.dump_plot_object(plot_object)
 
                     plot_object['backup_count'] = 0
+
+            self.__crop_plot_object_list()
 
     def __crop_plot_object_list(self):
         """
