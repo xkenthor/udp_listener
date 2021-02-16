@@ -32,6 +32,9 @@ class ListenerBackEnd():
         # GIGACRUTCH
         self.__counter_list = [0,0,0,0,0,0]
 
+        self.__buffer_lower_limit = 3
+        self.__buffer_upper_limit = 15000000
+
         settings_dict = gu.read_json(settings_path)
         self.__th_lock_settings_file = threading.Lock()
 
@@ -155,16 +158,14 @@ class ListenerBackEnd():
         buffer_size -- < int > new buffer_size.0
 
         """
-        lower_limit = 3
-        upper_limit = 10000
-
         try:
             buffer_size = int(buffer_size)
 
-            if buffer_size < lower_limit or buffer_size > upper_limit:
+            if buffer_size < self.__buffer_lower_limit or \
+                                    buffer_size > self.__buffer_upper_limit:
                 raise ValueError(
                     'Buffer size is out of [{}, {}] limit.'.format(
-                                                    lower_limit, upper_limit))
+                        self.__buffer_lower_limit, self.__buffer_upper_limit))
 
             self.__buffer_size = buffer_size
             self.__settings_dict['buffer_size'] = buffer_size
@@ -261,7 +262,7 @@ class ListenerBackEnd():
         for index in x:
             x[index] = x[index]*modifier + self.__counter_list[plot_index]
 
-        self.__counter_list[plot_index] += modifier*len(y)
+        # self.__counter_list[plot_index] += modifier*len(y)
 
         # for index in range(len(x)):
         #     x[index] = x[index] * 1000000

@@ -74,7 +74,7 @@ ip = 'localhost'
 port = 9090
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 timer = 0.1
-#
+
 # for i in range(0,-1000000,-1):
 #    value = i/10
 #    try:
@@ -86,6 +86,16 @@ timer = 0.1
 
 while True:
     msg = msg_generator(0)
+    for i in range(40):
+        current_word = msg[i*24:i*24+24]
+        bslice = current_word[8:16]+current_word[20:]
+
+#        print(bslice)
+#        print(list(bslice))
+
+#        for index in bslice
+
+#    input()
 
     sock.sendto(msg, (ip, port))
 

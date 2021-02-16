@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>824</width>
-    <height>1003</height>
+    <height>1004</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -535,12 +535,12 @@ QScrollBar::sub-page:vertical
              <widget class="QLineEdit" name="le_buffer_size">
               <property name="maximumSize">
                <size>
-                <width>50</width>
+                <width>70</width>
                 <height>16777215</height>
                </size>
               </property>
               <property name="text">
-               <string>99999</string>
+               <string>15000000</string>
               </property>
              </widget>
             </item>

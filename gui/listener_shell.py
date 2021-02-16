@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(824, 1004)
+        MainWindow.resize(824, 1003)
         MainWindow.setMinimumSize(QtCore.QSize(130, 0))
         MainWindow.setStyleSheet("\n"
 "/*-----QWidget-----*/\n"
@@ -465,7 +465,7 @@ class Ui_MainWindow(object):
         self.lo_buffer_size = QtWidgets.QHBoxLayout()
         self.lo_buffer_size.setObjectName("lo_buffer_size")
         self.le_buffer_size = QtWidgets.QLineEdit(self.lo_mw)
-        self.le_buffer_size.setMaximumSize(QtCore.QSize(70, 16777215))
+        self.le_buffer_size.setMaximumSize(QtCore.QSize(50, 16777215))
         self.le_buffer_size.setObjectName("le_buffer_size")
         self.lo_buffer_size.addWidget(self.le_buffer_size)
         self.btn_buffer_size = QtWidgets.QPushButton(self.lo_mw)
@@ -563,7 +563,7 @@ class Ui_MainWindow(object):
         self.le_addr.setText(_translate("MainWindow", "255.255.255.255:65535"))
         self.btn_addr.setText(_translate("MainWindow", "Переподключиться"))
         self.lb_buffer_size.setText(_translate("MainWindow", "Размер буферизации:"))
-        self.le_buffer_size.setText(_translate("MainWindow", "15000000"))
+        self.le_buffer_size.setText(_translate("MainWindow", "99999"))
         self.btn_buffer_size.setText(_translate("MainWindow", "Изменить"))
         self.cb_history.setText(_translate("MainWindow", "Сохранять историю"))
         self.lb_pt_1.setText(_translate("MainWindow", "График №1"))

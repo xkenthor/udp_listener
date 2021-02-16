@@ -107,6 +107,7 @@ def decode_msg(msg):
 
     for record_num in range(_records_per_package):
         r_pos = record_num * _template_record_bsize
+
         record_slice = msg[r_pos:r_pos+_template_record_bsize]
 
         record_list = []
@@ -148,7 +149,7 @@ def cvt_raw2plot_custom(raw_data):
 
     try:
         records_list = decode_msg(raw_data[1])
-        difference_time = (time.time() - received_time) / _records_per_package
+#        difference_time = (time.time() - received_time) / _records_per_package
 
         for record in records_list:
             record_data_list = []
@@ -160,7 +161,7 @@ def cvt_raw2plot_custom(raw_data):
                 record_data_list.append((received_time, float(measurement)))
 
             data_list.append(record_data_list)
-            received_time += difference_time
+#            received_time += difference_time
 
     except Exception as error:
         gu.log(error.__str__(), 1)
@@ -323,10 +324,10 @@ class PlotDB:
             # received_data = self.__source_object.read_data()
             # received_data = received_data.decode()
             # received_data = cvt_raw2plot(received_data)
+
             received_data_list = self.__source_object.read_data()
             received_data_list = cvt_raw2plot_custom(received_data_list)
 
-            print(self.__plot_list[0]['backup_count'])
             for received_data in received_data_list:
                 if len(received_data) != self.__graph_amount:
                     gu.log('Received data does not match the number ' +\
@@ -336,9 +337,6 @@ class PlotDB:
                 for index in range(self.__graph_amount):
                     concatenate_2dplot_dot(
                                 self.__plot_list[index], received_data[index])
-
-            print(self.__plot_list[0]['backup_count'])
-            input()
 
             for plot_object in self.__plot_list:
 
