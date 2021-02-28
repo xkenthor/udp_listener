@@ -13,5 +13,10 @@
     2
   ],
   "byteorder": "little",
-  "signed":true
+  "signed":true,
+  "x_label": "t, с",
+  "y_label": "U, Вольт",
+  "time_delay": 0.16,
+  "byte_divider": 32768,
+  "voltage": 10
 }
