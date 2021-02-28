@@ -74,6 +74,11 @@ class ListenerBackEnd():
             self.__ui.pt_6
         )
 
+        single_plot = self.__plot_db.get_plot_list()[0]
+        for pt in self.__plot_tuple:
+            pt.setLabel('left', single_plot['y_label'])
+            pt.setLabel('bottom', single_plot['x_label'])
+
         self.__init_all_connections()
         self.__init_all_widgets()
 
