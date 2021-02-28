@@ -14,8 +14,8 @@
   ],
   "byteorder": "little",
   "signed":true,
-  "x_label": "t, с",
-  "y_label": "U, Вольт",
+  "x_label": "t, c",
+  "y_label": "U, Volt",
   "time_delay": 0.16,
   "byte_divider": 32768,
   "voltage": 10
