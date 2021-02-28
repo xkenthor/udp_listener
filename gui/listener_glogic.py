@@ -254,19 +254,21 @@ class ListenerBackEnd():
         plot_object -- < plot_db.PlotDB > plot object that will be plotted.
 
         """
-        # x = plot_object['x'][-self.__buffer_size:]
+        x = plot_object['x'][-self.__buffer_size:]
         y = plot_object['y'][-self.__buffer_size:]
 
-        modifier = 0.00001
-        x = list(range(len(y)))
-        for index in x:
-            x[index] = x[index]*modifier + self.__counter_list[plot_index]
+        # modifier = 0.00001
+        # x = list(range(len(y)))
+        # for index in x:
+        #     x[index] = x[index]*modifier + self.__counter_list[plot_index]
 
+
+        # # oldest
         # self.__counter_list[plot_index] += modifier*len(y)
-
+        #
         # for index in range(len(x)):
         #     x[index] = x[index] * 1000000
-
+        #
         # plot_widget.setLabel('bottom', plot_widget['x_label'])
         # plot_widget.setLabel('left', plot_object['y_label'])
 
@@ -313,10 +315,10 @@ class ListenerBackEnd():
 
         if ptlr.check_addr_correctness(text):
             self.__load_le_addr()
-            return
         else:
             text = text.split(':')
             self.__reinitialize_port_listener(text[0], text[1])
+            self.__dump_settings()
 
     def __clicked_cb_history(self):
         """
