@@ -84,8 +84,8 @@ def generate_2dplot_dict(name="unknown", x_label="x", y_label="y", x=[], y=[]):
 
     Keyword arguments:
     name -- < str > name of new plot.
-    x_label -- < str > name of x axis.
-    y_label -- < str > name of y axis.
+    # UNUSED x_label -- < str > name of x axis.
+    # UNUSED y_label -- < str > name of y axis.
     x -- < list > list of values for x axis.
     y -- < list > list of values for y axis.
 
@@ -115,8 +115,8 @@ def generate_2dplot_dict(name="unknown", x_label="x", y_label="y", x=[], y=[]):
 
     new_plot_dict.update({
         "name": name,
-        "x_label": x_label,
-        "y_label": y_label,
+        # "x_label": x_label,
+        # "y_label": y_label,
         "x": x.copy(),
         "y": y.copy()
         })
