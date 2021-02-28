@@ -31,13 +31,52 @@ _template_graph_dump_filename = "{date}_{x_start_time}_{duration}"
 _template_date_name = "%Y-%m-%d"
 _template_time_name = "%H-%m-%S"
 
-_template_2dplot_dict = {
+_old_template_2dplot_dict = {
     "name": None,
     "x_label": None,
     "y_label": None,
     "x": None,
     "y": None
 }
+
+_template_2dplot_dict = _old_template_2dplot_dict.copy()
+_template_2dplot_dict.update({
+    "x_label": _custom_settings['x_label'],
+    "y_label": _custom_settings['y_label']
+})
+
+_time_delay = _custom_settings['time_delay']
+_voltage = _custom_settings['voltage']
+_byte_divider = _custom_settings['byte_divider']
+
+
+def calc_time(raw_x, time_delay=_time_delay):
+    """
+    This method shows time value has been received. Calculation based on number
+        of package and time delay between packages.
+
+    Keyword arguments:
+    raw_x -- < int > raw x value.
+    time_delay -- < float > time delay per message in seconds.
+
+    """
+    return raw_x * time_delay
+
+def calc_vin(raw_y, voltage=_voltage, byte_divider=_byte_divider):
+    """
+    This function calculates y value for custom function.
+
+    Keyword arguments:
+    raw_y -- < int > raw y value.
+    voltage -- < int/float > custom variable.
+    byte_divider -- < int > any power of two.
+
+    Return:
+    < float > -- y value.
+
+    """
+    y = (raw_y*voltage) / byte_divider
+    return y
 
 def generate_2dplot_dict(name="unknown", x_label="x", y_label="y", x=[], y=[]):
     """
@@ -144,7 +183,7 @@ def cvt_raw2plot_custom(raw_data):
         format: [[(time, plot_1_value), (time, plot_2_value), ..], .. ]
 
     """
-    received_time = raw_data[0]
+    # received_time = calc_time(raw_data[0])
     data_list = []
 
     try:
@@ -155,10 +194,12 @@ def cvt_raw2plot_custom(raw_data):
             record_data_list = []
 
             # ignoring 5, 6 channels *** [:) ***
+            received_time = calc_time(record[0])
             record = record[2:6] + record[8:]
 
             for measurement in record:
-                record_data_list.append((received_time, float(measurement)))
+                record_data_list.append((received_time,
+                                        float(calc_vin(measurement))))
 
             data_list.append(record_data_list)
 #            received_time += difference_time
