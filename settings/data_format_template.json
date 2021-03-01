@@ -1,7 +1,7 @@
 {
   "records_per_package": 40,
   "template_record_bsize_tuple": [
-    [4, true],
+    [4, false],
     [4, false],
     [2, true],
     [2, true],
