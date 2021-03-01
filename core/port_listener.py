@@ -112,8 +112,10 @@ class UDPServer:
 
     def __reinitialize_port_listener(self):
         """
+        #TODO
 
         """
+        pass
 
     def __check_status(self):
         """
@@ -152,7 +154,7 @@ class UDPServer:
     def read_data(self):
         """
         This method reads data from port only once. Notice that this function
-            locks until data
+            locks until data received.
 
         Return:
         raw_data -- < tuple > of < float > & < str >. (time, data). Data
