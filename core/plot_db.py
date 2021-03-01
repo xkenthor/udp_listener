@@ -123,6 +123,44 @@ def generate_2dplot_dict(name="unknown", x_label="x", y_label="y", x=[], y=[]):
 
     return new_plot_dict
 
+def crop_msg(msg):
+    """
+    This function crops raw bytes message to record list.
+
+    Global arguments:
+    _records_per_package -- < int > number of records message includes.
+    _byteorder -- < str > -- big/little.
+    # UNUSED _signed -- < bool > -- True/False.
+    _template_record_bsize_tuple -- < tuple > of bytes length for each value in
+        measurement.
+    _template_record_bsize -- < int > size of one record in bytes.
+
+    Keyword arguments:
+    msg -- < bytes > raw bytes message.
+
+    Return:
+    < list > -- list of decoded records.
+
+    """
+    result_list = []
+
+    for record_num in range(_records_per_package):
+        r_pos = record_num * _template_record_bsize
+
+        record_slice = msg[r_pos:r_pos+_template_record_bsize]
+
+        record_list = []
+        b_pos = 0
+
+        for bsize in _template_record_bsize_tuple:
+            value = record_slice[b_pos:b_pos+bsize[0]]
+            record_list.append(value)
+            b_pos += bsize[0]
+
+        result_list.append(record_list)
+
+    return result_list
+
 def decode_msg(msg):
     """
     This function decodes raw bytes message.
