@@ -82,38 +82,45 @@ def main():
     us_1 = pl.UDPServer(_ip, _port)
     us_1.serve_forever_thread()
 
-    timer = 1
-    index = interface()
+    try:
+        timer = 1
+        index = interface()
 
-    if index == -1:
-        prefix = "Полное сообщение:"
+        if index == -1:
+            prefix = "Полное сообщение:"
 
-        while True:
-            raw_data = us_1.get_data()
-            raw_data = pdb.decode_msg(raw_data[1])
+            while True:
+                raw_data = us_1.get_data()
+                raw_data = pdb.decode_msg(raw_data[1])
 
-            print("Полученный пакет:\n")
-            print(prefix + json.dumps(raw_data, indent=3))
+                print("Полученный пакет:\n")
+                print(prefix + json.dumps(raw_data, indent=3))
 
-            input("\nПродолжить? Введите любую клавишу.. ")
-            print()
-            # time.sleep(timer)
+                input("\nПродолжить? Нажмите Enter.. ")
+                print()
+                # time.sleep(timer)
 
-    else:
-        while True:
-            raw_data = us_1.get_data()
-            raw_data = pdb.decode_msg(raw_data[1])
+        else:
+            while True:
+                raw_data = us_1.get_data()
+                raw_data = pdb.decode_msg(raw_data[1])
 
-            print("Полученный пакет:\n")
+                print("Полученный пакет:\n")
 
-            for num in range(len(raw_data)):
-                prefix = "   Запись #{}. ".format(num).ljust(16) + \
-                                            "[{}]: ".format(index).rjust(7)
-                print(prefix + str(raw_data[num][index]))
+                for num in range(len(raw_data)):
+                    prefix = "   Запись #{}. ".format(num).ljust(16) + \
+                                                "[{}]: ".format(index).rjust(7)
+                    print(prefix + str(raw_data[num][index]))
 
-            input("\nПродолжить? Введите любую клавишу.. ")
-            print()
-            # time.sleep(timer)
+                input("\nПродолжить? Нажмите Enter.. ")
+                print()
+                # time.sleep(timer)
+
+    except KeyboardInterrupt as error:
+        print("\n\nВыход.. \n")
+        us_1.stop_service()
+        print()
+        # us_1.__del__()
 
 if __name__ == "__main__":
     main()
