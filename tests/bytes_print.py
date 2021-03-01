@@ -30,7 +30,69 @@ _ds = gu.read_json('../settings/defaults.json')
 _ip = _ds['ip']
 _port = _ds['port']
 
+# --------------------------------------------------------------------------- #
+
+def _generate_string(length, symbol='-'):
+
+    result_str = ""
+    for index in range(length):
+        result_str += symbol
+
+    return result_str
+
+_cap_label_list = ["Индекс", "№", "Значение", "HEX"]
+
+_just_len_list = [8, 6, 10, 14]
+
+_genj_len = 0
+for jlen in _just_len_list:
+    _genj_len += jlen
+_genj_len += len(_cap_label_list) - 1
+
+_table_line = "|{}|\n".format(_generate_string(_genj_len))
+
 # =========================================================================== #
+
+def _bytes_to_hex(b2hex, prefix="0x", upper=True):
+
+    b2hex = b2hex.hex()
+    if upper:
+        b2hex = b2hex.upper()
+
+    b2hex = prefix + b2hex
+
+    return b2hex
+
+def _print_cap():
+    cap_string = ""
+
+    cap_string += _table_line
+
+    for index in range(len(_just_len_list)):
+        cap_string += "|"+_cap_label_list[index].center(_just_len_list[index])
+    cap_string += "|\n"
+
+    cap_string += _table_line
+    print(cap_string, end='')
+
+
+def _print_data(main_index, raw_data):
+    cropped_data = pdb.crop_msg(raw_data)
+    decoded_data = pdb.decode_msg(raw_data)
+
+    table_string = ""
+    for index in range(len(decoded_data)):
+        table_string += "|{}|{}|{}|{}|\n".format(
+            str(main_index).center(_just_len_list[0]),
+            str(index).center(_just_len_list[1]),
+            str(decoded_data[index][main_index]).center(_just_len_list[2]),
+            str(_bytes_to_hex(cropped_data[index][main_index])).center(
+                                                            _just_len_list[3])
+        )
+    table_string += _table_line
+
+    print(table_string)
+
 
 def interface():
     msg = "/ ------------------------------------------------------ /\n\n"
@@ -78,49 +140,37 @@ def interface():
 
     return index
 
+def main_cycle(source_object):
+
+    index = interface()
+
+    while True:
+        raw_data = source_object.get_data()
+
+        print("Полученный пакет:\n")
+
+        if index == -1:
+            raw_data = pdb.decode_msg(raw_data[1])
+            print("Полное сообщение:\n\n" + json.dumps(raw_data, indent=3))
+
+        else:
+            _print_cap()
+            _print_data(index, raw_data[1])
+
+        input("\ Для продолжения нажмите Enter.. ")
+        print()
+
 def main():
     us_1 = pl.UDPServer(_ip, _port)
     us_1.serve_forever_thread()
 
     try:
-        timer = 1
-        index = interface()
-
-        if index == -1:
-            prefix = "Полное сообщение:"
-
-            while True:
-                raw_data = us_1.get_data()
-                raw_data = pdb.decode_msg(raw_data[1])
-
-                print("Полученный пакет:\n")
-                print(prefix + json.dumps(raw_data, indent=3))
-
-                input("\nПродолжить? Нажмите Enter.. ")
-                print()
-                # time.sleep(timer)
-
-        else:
-            while True:
-                raw_data = us_1.get_data()
-                raw_data = pdb.decode_msg(raw_data[1])
-
-                print("Полученный пакет:\n")
-
-                for num in range(len(raw_data)):
-                    prefix = "   Запись #{}. ".format(num).ljust(16) + \
-                                                "[{}]: ".format(index).rjust(7)
-                    print(prefix + str(raw_data[num][index]))
-
-                input("\nПродолжить? Нажмите Enter.. ")
-                print()
-                # time.sleep(timer)
+        main_cycle(us_1)
 
     except KeyboardInterrupt as error:
         print("\n\nВыход.. \n")
         us_1.stop_service()
         print()
-        # us_1.__del__()
 
 if __name__ == "__main__":
     main()
