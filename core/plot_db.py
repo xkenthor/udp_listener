@@ -18,10 +18,10 @@ _template_record_bsize_tuple = _custom_settings['template_record_bsize_tuple']
 
 _template_record_bsize = 0
 for bsize in _template_record_bsize_tuple:
-    _template_record_bsize += bsize
+    _template_record_bsize += bsize[0]
 
 _byteorder = _custom_settings['byteorder']
-_signed = _custom_settings['signed']
+# _signed = _custom_settings['signed']
 
 _default_plot_thresh = 10000
 _default_plot_backup = 10000
@@ -130,7 +130,7 @@ def decode_msg(msg):
     Global arguments:
     _records_per_package -- < int > number of records message includes.
     _byteorder -- < str > -- big/little.
-    _signed -- < bool > -- True/False.
+    # UNUSED _signed -- < bool > -- True/False.
     _template_record_bsize_tuple -- < tuple > of bytes length for each value in
         measurement.
     _template_record_bsize -- < int > size of one record in bytes.
@@ -153,11 +153,13 @@ def decode_msg(msg):
         b_pos = 0
 
         for bsize in _template_record_bsize_tuple:
-            value = record_slice[b_pos:b_pos+bsize]
-            value = int.from_bytes(value, byteorder=_byteorder, signed=_signed)
+            value = record_slice[b_pos:b_pos+bsize[0]]
+            value = int.from_bytes(value,
+                                byteorder=_byteorder,
+                                signed=bsize[1])
 
             record_list.append(value)
-            b_pos += bsize
+            b_pos += bsize[0]
 
         result_list.append(record_list)
 
@@ -194,7 +196,7 @@ def cvt_raw2plot_custom(raw_data):
             record_data_list = []
 
             # ignoring 5, 6 channels *** [:) ***
-            received_time = calc_time(record[0])
+            received_time = calc_time(record[1])
             record = record[2:6] + record[8:]
 
             for measurement in record:
