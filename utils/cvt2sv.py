@@ -46,8 +46,8 @@ def generate_sv(data, sv_symbol=_sv_symbol):
     """
     result_str = ''
 
-    x = [data['x_label']]+data['x']
-    y = [data['y_label']]+data['y']
+    x = [data['x_label']] + data['x']
+    y = [data['y_label']] + data['y']
 
     for index in range(len(x)):
         result_str += (str(x[index]) + sv_symbol + str(y[index]) + "\n")
@@ -100,8 +100,8 @@ if __name__ == "__main__":
 
             except Exception as error:
                 gu.log("\n\tfilename: {}\n\terrorstr: {}".format(
-                                                    filename,
-                                                    error.__str__()), 1)
+                                                        filename,
+                                                        error.__str__()), 1)
 
     except Exception as error:
         gu.log(error.__str__(), 1)
