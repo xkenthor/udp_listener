@@ -192,10 +192,7 @@ def decode_msg(msg):
 
         for bsize in _template_record_bsize_tuple:
             value = record_slice[b_pos:b_pos+bsize[0]]
-            value = int.from_bytes(value,
-                                byteorder=_byteorder,
-                                signed=bsize[1])
-
+            value = int.from_bytes(value,byteorder=_byteorder, signed=bsize[1])
             record_list.append(value)
             b_pos += bsize[0]
 
