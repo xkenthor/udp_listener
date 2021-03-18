@@ -1,7 +1,9 @@
+#!/usr/bin/python
 import random
 import struct
 import socket
 import time
+import math
 import sys
 
 _m_range = 8
@@ -16,87 +18,45 @@ _template_record_bsize = 24
 _byteorder = 'little'
 _signed = True
 
-def decode_msg(msg,
-            records_per_package=_records_per_package,
-            byteorder=_byteorder,
-            signed=_signed):
-    """
-    This function decodes raw bytes message.
-
-    Keyword arguments:
-    msg -- < bytes > raw bytes message.
-    records_per_package -- < int > number of records message includes.
-    byteorder -- < str > -- big/little.
-    signed -- < bool > -- True/False.
-
-    Return:
-    < list > -- list of decoded records.
-
-    """
-    result_list = []
-
-    for record_num in range(records_per_package):
-        r_pos = record_num*_template_record_bsize
-        record_slice = msg[r_pos:r_pos+_template_record_bsize]
-
-        record_list = []
-        b_pos = 0
-
-        for bsize in _template_record_bsize_tuple:
-            value = record_slice[b_pos:b_pos+bsize]
-            value = int.from_bytes(value, byteorder=byteorder, signed=signed)
-            record_list.append(value)
-            b_pos += bsize
-
-        result_list.append(record_list)
-
-    return result_list
-
 def cvt_bytes(number, bsize, byteorder=_byteorder, signed=_signed):
     return number.to_bytes(bsize, byteorder=byteorder, signed=signed)
 
-def msg_generator(package_number):
+def msg_generator(package_number, mode=0):
     msg_bytes = b''
 
     for m_num in range(_measurements_per_package):
         msg_bytes += cvt_bytes(m_num, 4)
-        msg_bytes += cvt_bytes(package_number, 4)
+        msg_bytes += cvt_bytes(package_number+m_num, 4)
 
         for i in range(_m_range):
-            msg_bytes += cvt_bytes(random.randint(_lower, _upper), 2)
+            if mode == 0:
+                msg_bytes += cvt_bytes(random.randint(_lower, _upper), 2)
+            elif mode == 1:
+                msg_bytes += cvt_bytes(int(math.sin(m_num)*100), 2)
+            elif mode == 2:
+                msg_bytes += cvt_bytes(0, 2)
 
     return msg_bytes
 
-msg = msg_generator(0)
 
+if __name__ == '__main__':
 
-ip = 'localhost'
-port = 9090
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-timer = 0.1
+    ip = 'localhost'
+    port = 9090
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    timer = 0.1
 
-# for i in range(0,-1000000,-1):
-#    value = i/10
-#    try:
-#        3print(value, value.to_bytes(2, byteorder='big', signed=True))
-#    except Exception as error:
-#        print(error.__str__())
-#        input()
+    pkg_number = 0
+    mode = 0
+    while True:
+        if pkg_number % 1000 == 0:
+            mode += 1
 
+            if mode > 2:
+                mode = 0
 
-while True:
-    msg = msg_generator(0)
-    for i in range(40):
-        current_word = msg[i*24:i*24+24]
-        bslice = current_word[8:16]+current_word[20:]
+        msg = msg_generator(pkg_number, mode)
+        pkg_number += 40
 
-#        print(bslice)
-#        print(list(bslice))
-
-#        for index in bslice
-
-#    input()
-
-    sock.sendto(msg, (ip, port))
-
-    time.sleep(timer)
+        sock.sendto(msg, (ip, port))
+        time.sleep(timer)
