@@ -9,6 +9,22 @@ import datetime
 import json
 import gzip
 
+# ANSI escape code colors
+_ansi_ec_col = {
+    "reset": "\033[0m",
+    "black": "\033[0;30m",
+    "red": "\033[0;31m",
+    "green": "\033[0;32m",
+    "yellow": "\033[0;33m",
+    "blue": "\033[0;34m",
+    "purple": "\033[0;35m",
+    "cyan": "\033[0;36m",
+    "white": "\033[0;37m"
+}
+
+_dbg_msg_template = "{hcolor}-dbg-{ecolor} | {acolor}{anchor}{ecolor} |>" +\
+                                                    " {mcolor}{msg}{ecolor}"
+
 _json_default_indent = 3
 
 _log_strftime_format = "%H:%M:%S"
@@ -40,6 +56,33 @@ def log(msg, code=0):
                         msg=msg)
 
     print(message)
+
+def debug(msg, anchor=None, color="yellow"):
+    """
+    This function outputs color-coded (escape sequences) debug information.
+
+    ATTENTION:
+        This function is meant to be used only for development purposes only.
+
+    Keyword arguments:
+    msg -- < str > debug information that will be displayed.
+    anchor -- < str/None > any catch name that shortly describes debug point/
+        no name is needed.
+    color -- < str > name of color that will be used for printing.
+
+    """
+
+    if anchor is None:
+        anchor = ""
+
+    print(_dbg_msg_template.format(
+                        hcolor=_ansi_ec_col["purple"],
+                        mcolor=_ansi_ec_col[color],
+                        acolor=_ansi_ec_col["cyan"],
+                        ecolor=_ansi_ec_col["reset"],
+                        anchor=anchor,
+                        msg=msg))
+
 
 def read_gzip(path_to_gzip):
     """
