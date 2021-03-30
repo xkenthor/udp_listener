@@ -192,7 +192,10 @@ def decode_msg(msg):
 
         for bsize in _template_record_bsize_tuple:
             value = record_slice[b_pos:b_pos+bsize[0]]
-            value = int.from_bytes(value,byteorder=_byteorder, signed=bsize[1])
+            value = int.from_bytes(value,
+                                byteorder=_byteorder,
+                                signed=bsize[1])
+                                
             record_list.append(value)
             b_pos += bsize[0]
 
@@ -403,6 +406,8 @@ class PlotDB:
             # received_data = received_data.decode()
             # received_data = cvt_raw2plot(received_data)
 
+            st = time.time()
+
             received_data_list = self.__source_object.read_data()
             received_data_list = cvt_raw2plot_custom(received_data_list)
 
@@ -424,6 +429,13 @@ class PlotDB:
                         self.dump_plot_object(plot_object)
 
                     plot_object['backup_count'] = 0
+
+            gu.debug("\n\tct: {}\n\tbc: {}\n\ttime: {}s".format(
+                        len(self.__plot_list[0]["x"]),
+                        plot_object['backup_count'],
+                        round(time.time() - st, 3)), "counting")
+
+            st = time.time()
 
             self.__crop_plot_object_list()
 
