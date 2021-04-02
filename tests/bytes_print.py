@@ -75,7 +75,6 @@ def _print_cap():
     cap_string += _table_line
     print(cap_string, end='')
 
-
 def _print_data(main_index, raw_data):
     cropped_data = pdb.crop_msg(raw_data)
     decoded_data = pdb.decode_msg(raw_data)
