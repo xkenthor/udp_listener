@@ -35,20 +35,24 @@ for record in _rbst:
 
 # general functions
 
-def fourier_processing(value_array):
+def fourier_processing(value_array, target_freq=10):
+    vl_len = len(value_array)
+    if vl_len < 500:
+        return value_array
+
     yf = rfft(value_array)
-    xf = rfftfreq(len(value_array))
+    xf = rfftfreq(vl_len)
 
-    idx_per_freq = len(xf) / 10
+    idx_per_freq = 1 #len(xf) / 10
 
-    idx_deviation = int(10 / 2)
+    idx_deviation = int((10 - 1) / 2)
     if idx_deviation < 1:
         idx_deviation = 0
 
-    target_freq = 20
+    target_idx = int(idx_per_freq * target_freq)
 
-    yf[target_freq-idx_deviation:target_freq+idx_deviation] = 0
-    yf = irfft(len(xf))
+    yf[target_idx-idx_deviation:target_idx+idx_deviation] = 0
+    yf = irfft(yf)
 
     return yf
 
