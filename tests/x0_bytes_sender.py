@@ -1,3 +1,4 @@
+from scipy.fft import rfft, rfftfreq, irfft
 import numpy as np
 
 import random
@@ -19,6 +20,8 @@ _dft_path = "../settings/data_format_template.json"
 _defaults = gu.read_json(_defaults_path)
 _dft = gu.read_json(_dft_path)
 
+_value_array = []
+
 # data format variables
 
 _rpr = _dft["records_per_package"]
@@ -31,6 +34,23 @@ for record in _rbst:
     _rbs += record[0]
 
 # general functions
+
+def fourier_processing(value_array):
+    yf = rfft(value_array)
+    xf = rfftfreq(len(value_array))
+
+    idx_per_freq = len(xf) / 10
+
+    idx_deviation = int(10 / 2)
+    if idx_deviation < 1:
+        idx_deviation = 0
+
+    target_freq = 20
+
+    yf[target_freq-idx_deviation:target_freq+idx_deviation] = 0
+    yf = irfft(len(xf))
+
+    return yf
 
 def cvt_bytes(integer, bsize, signed, byteorder=_bor):
     return integer.to_bytes(bsize, byteorder=byteorder, signed=signed)
@@ -60,9 +80,20 @@ def msg_gen(package_number):
                 value = sin_wave(numer)
 
             elif i == 3:
-                value_1 = sin_wave(numer)
+                value = sin_wave(numer, div=20)
 
-            elif i >= 5 and i < _mpp-1:
+            elif i == 4:
+                value = sin_wave(numer) + sin_wave(numer, div=20)
+
+            elif i == 5:
+                _value_array.append(sin_wave(numer) + sin_wave(numer, div=20))
+
+                if len(_value_array) > 1000:
+                    _value_array.pop(0)
+
+                value = fourier_processing(_value_array)[-1]
+
+            elif i == 8:
                 value = rand_wave()
 
             else:
@@ -71,7 +102,6 @@ def msg_gen(package_number):
             msg_bytes += cvt_bytes(int(value), _rbst[i][0], _rbst[i][1])
 
     return msg_bytes
-
 
 if __name__ == "__main__":
 
