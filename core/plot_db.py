@@ -4,10 +4,12 @@ This module provides classes & functions that implements I/O over plot data &
     source object and provides external access.
 
 """
+import multiprocessing
 import threading
 import datetime
 import random
 import time
+import copy
 import os
 
 import general_utils as gu
@@ -48,6 +50,9 @@ _template_2dplot_dict.update({
 _time_delay = _custom_settings['time_delay']
 _voltage = _custom_settings['voltage']
 _byte_divider = _custom_settings['byte_divider']
+_sample_rate = _custom_settings['sample_rate']
+_banned_frequencies = set(_custom_settings['banned_frequencies'])
+_processed_graphs = set(_custom_settings['processed_graphs'])
 
 
 def calc_time(raw_x, time_delay=_time_delay):
@@ -195,7 +200,7 @@ def decode_msg(msg):
             value = int.from_bytes(value,
                                 byteorder=_byteorder,
                                 signed=bsize[1])
-                                
+
             record_list.append(value)
             b_pos += bsize[0]
 
@@ -326,6 +331,71 @@ def concatenate_2dplot_dot_list(plot_object, dot_list):
     for dot in dot_list:
         concatenate_2dplot_dot(plot_object, dot)
 
+def dump_plot_object(plot_object, save_dir, backup_count):
+    """
+    This function dumps plot_object to gzip file with max compression.
+
+    Keyword arguments:
+    plot_object -- < dict > plot object in the following format:
+        {
+            "name": < str >,
+            "x_label": < str >,
+            "y_label": < str >,
+            "x": < list >,
+            "y": < list >,
+            "backup_count": < int >
+        }
+
+    """
+    plot_object['x'] = plot_object['x'][-backup_count:]
+    plot_object['y'] = plot_object['y'][-backup_count:]
+
+    plot_object.pop("backup_count")
+
+    utime_start = datetime.datetime.utcfromtimestamp(plot_object['x'][0])
+    name = plot_object['name']
+    date = utime_start.strftime(_template_date_name)
+    x_start_time = utime_start.strftime(_template_time_name)
+    duration = str(int(plot_object['x'][-1] - plot_object['x'][0]))
+
+    save_path = os.path.join(save_dir, name)
+
+    if os.path.exists(save_path) != True:
+        os.makedirs(save_path)
+
+    save_path = os.path.join(
+        save_path,
+        _template_graph_dump_filename.format(
+                                    name=name,
+                                    date=date,
+                                    x_start_time=x_start_time,
+                                    duration=duration))
+
+    gu.write_gzip(save_path, plot_object, compresslevel=9)
+
+def dump_demon(object_queue):
+    """
+    This function cause blocking is meant to be runned in separated process.
+        It will loop over getting plots from object_queue for saving them. If
+        it will get None object, then the loop breaks.
+
+    Queue objects format:
+    < None/tuple > -- if you want to stop the loop & end process / tuple in the
+        following format:
+            ( plot_object, backup_count, save_dir ).
+
+    Keyword arguments:
+    object_queue -- < multiprocessing.Queue >
+
+    """
+    while True:
+        msg = object_queue.get()
+        if msg is None:
+            gu.log("Stopped queue processing.")
+            break
+        else:
+            dump_plot_object(msg[0], msg[1], msg[2])
+
 class PlotDB:
 
     def __init__(self,
@@ -370,6 +440,8 @@ class PlotDB:
             new_plot.update({"backup_count": 0})
             self.__plot_list.append(new_plot)
 
+        self.__dd_queue = multiprocessing.Queue()
+
     def __check_status(self):
         """
         This method checks if object is currently processing data, prints error
@@ -400,6 +472,10 @@ class PlotDB:
 
         """
         self.__on_process = True
+        self.__dd_proc = multiprocessing.Process(target=dump_demon,
+                                                args=(self.__dd_queue,),
+                                                name="Dump-Demon")
+        self.__dd_proc.start()
 
         while self.__on_process:
             # received_data = self.__source_object.read_data()
@@ -421,23 +497,31 @@ class PlotDB:
                     concatenate_2dplot_dot(
                                 self.__plot_list[index], received_data[index])
 
-            for plot_object in self.__plot_list:
-
+            # for plot_object in self.__plot_list:
+            for index in range(self.__graph_amount):
+                plot_object = self.__plot_list[index]
                 if plot_object['backup_count'] >= self.__backup_count:
 
                     if self.__dumping_enabled:
-                        self.dump_plot_object(plot_object)
+                        self.__dd_queue.put((plot_object,
+                                            self.__dump_save_dir,
+                                            self.__backup_count))
+                        #self.dump_plot_object(self.preprocess_plot(
+                        #                                plot_object, index))
 
                     plot_object['backup_count'] = 0
 
-            gu.debug("\n\tct: {}\n\tbc: {}\n\ttime: {}s".format(
-                        len(self.__plot_list[0]["x"]),
-                        plot_object['backup_count'],
-                        round(time.time() - st, 3)), "counting")
+            # gu.debug("\n\tct: {}\n\tbc: {}\n\ttime: {}s".format(
+            #             len(self.__plot_list[0]["x"]),
+            #             plot_object['backup_count'],
+            #             round(time.time() - st, 3)), "counting")
 
             st = time.time()
 
             self.__crop_plot_object_list()
+
+        self.__dd_queue.put(None)
+        self.__dd_proc.join()
 
     def __crop_plot_object_list(self):
         """
@@ -465,19 +549,25 @@ class PlotDB:
             cropped.
 
         """
+        start_time = time.time()
         x_length = len(plot_object['x'])
 
         if x_length > self.__thresh_count:
             difference = x_length - self.__thresh_count
 
-            plot_object['x'] = plot_object['x'][difference:]
-            plot_object['y'] = plot_object['y'][difference:]
+#            plot_object['x'] = plot_object['x'][difference:]
+#            plot_object['y'] = plot_object['y'][difference:]
+
+            del plot_object['x'][:difference]
+            del plot_object['y'][:difference]
 
             # plot_object['backup_count'] += difference
 
     def dump_plot_object(self, plot_object):
         """
+        # UNUSED
         This method dumps plot_object to gzip file with max compression.
+        ATTENTION: plot_object must be copy of original.
 
         Keyword arguments:
         plot_object -- < dict > plot object in the following format:
@@ -491,17 +581,17 @@ class PlotDB:
             }
 
         """
-        object_to_save = plot_object.copy()
-        object_to_save['x'] = object_to_save['x'].copy()[-self.__backup_count:]
-        object_to_save['y'] = object_to_save['y'].copy()[-self.__backup_count:]
-        object_to_save.pop("backup_count")
+        plot_object['x'] = plot_object['x'][-self.__backup_count:]
+        plot_object['y'] = plot_object['y'][-self.__backup_count:]
+
+        plot_object.pop("backup_count")
 
         utime_start = datetime.datetime.utcfromtimestamp(
-                                                    object_to_save['x'][0])
-        name = object_to_save['name']
+                                                    plot_object['x'][0])
+        name = plot_object['name']
         date = utime_start.strftime(_template_date_name)
         x_start_time = utime_start.strftime(_template_time_name)
-        duration = str(int(object_to_save['x'][-1] - object_to_save['x'][0]))
+        duration = str(int(plot_object['x'][-1] - plot_object['x'][0]))
 
         save_path = os.path.join(self.__dump_save_dir, name)
 
@@ -516,7 +606,7 @@ class PlotDB:
                                         x_start_time=x_start_time,
                                         duration=duration))
 
-        gu.write_gzip(save_path, object_to_save, compresslevel=9)
+        gu.write_gzip(save_path, plot_object, compresslevel=9)
 
     def set_dump_save_dir(self, dump_save_dir):
         """
@@ -665,6 +755,64 @@ class PlotDB:
 
         gu.log("PlotDB processing has been stopped.")
 
+    def preprocess_plot_list(self):
+        """
+        This method creates full copy of plot_list and removes banned
+            frequencies from them.
+
+        Return:
+        < list > of < dict > -- list of processed graphs.
+
+        """
+        new_list = []
+        for index in range(self.__graph_amount):
+            new_list.append(
+                        self.preprocess_plot(self.__plot_list[index], index))
+
+        return new_list
+
+    def preprocess_plot(self, plot_object, index):
+        """
+        This method creates full copy of plot object and removes banned
+            frequencies from y axis.
+
+        Keyword arguments:
+        plot_object -- < dict > plot object that will be processed.
+        index -- < int > number of graph.
+
+        Return:
+        < dict > -- processed_graph.
+
+        """
+        current_plot = copy.deepcopy(plot_object)
+
+        if index in _processed_graphs:
+            current_plot['y'] = gu.remove_freq_list(current_plot['y'],
+                                                    _sample_rate,
+                                                    _banned_frequencies)
+        return current_plot
+
+    def get_processed_plot_list(self):
+        """
+        This method returns processed plot_list.
+
+        Return:
+        < list > of < dict > with processed graphs inside.
+
+        """
+        new_list = []
+        for index in range(self.__graph_amount):
+            current_plot = self.__plot_list[index].copy()
+
+            if index in _processed_graphs:
+                current_plot['y'] = gu.remove_freq_list(
+                                                    current_plot['y'].copy(),
+                                                    _sample_rate,
+                                                    _banned_frequencies)
+
+            new_list.append(current_plot)
+
+        return new_list
 
 if __name__ == "__main__":
     pass

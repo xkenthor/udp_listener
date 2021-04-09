@@ -241,7 +241,7 @@ class ListenerBackEnd():
         This method updates all graph widgets.
 
         """
-        plot_object_list = self.__plot_db.get_plot_list()
+        plot_object_list = self.__get_plot_list()
 
         for index in range(self.__graph_amount):
             self.__update_data_line(
@@ -284,12 +284,21 @@ class ListenerBackEnd():
         This method updates all graph widgets.
 
         """
-        plot_object_list = self.__plot_db.get_plot_list()
+        plot_object_list = self.__get_plot_list()
 
         for index in range(self.__graph_amount):
             self.__plot_graph(
                     self.__plot_tuple[index],
                     plot_object_list[index])
+
+    def __get_plot_list(self):
+        """
+        This method returns plot_list from plot_db.
+
+        """
+        # plot_object_list = self.__plot_db.get_plot_list()
+        plot_object_list = self.__plot_db.get_processed_plot_list()
+        return plot_object_list
 
     def __plot_graph(self, plot_widget, plot_object):
         """

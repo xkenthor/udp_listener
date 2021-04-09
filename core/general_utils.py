@@ -3,11 +3,16 @@ This module contains general functions that are used in different parts of
     project.
 
 """
+import numpy as np
+import matplotlib.pyplot as plt
+
 import multiprocessing
 import threading
 import datetime
 import json
 import gzip
+
+from numpy.fft import rfft, rfftfreq, irfft
 
 # ANSI escape code colors
 _ansi_ec_col = {
@@ -145,3 +150,42 @@ def write_json(path_to_json, data, indent=_json_default_indent):
     """
     with open(path_to_json, 'w') as json_file:
         json.dump(data, json_file, indent=indent)
+
+def remove_freq_list(value_list, sample_rate, freq_list):
+    """
+    This function does fourier transform over value_list and removes frequencies
+        specified in freq_list.
+
+    Keyword arguments:
+    value_list -- < list/np.array > interval of values where needed frequencies
+        will be removed from.
+    sample_rate -- < int > (Hz) sample rate.
+    freq_list -- < list/tuple/set > of frequencies that will be removed.
+
+    Return:
+    < list > -- interval without deleted frequencies.
+
+    """
+    vl_len = len(value_list)
+    if vl_len < 1000:
+        return value_list
+
+    yf = rfft(value_list)
+    xf = rfftfreq(vl_len, sample_rate)
+
+    idx_per_freq = len(xf) / (sample_rate / 2)
+
+    idx_deviation = 2 + int(vl_len / 1000)
+
+#    plt.plot(xf, np.abs(yf))
+
+    for frequency in freq_list:
+        idx_current = int(frequency * idx_per_freq)
+        yf[idx_current-idx_deviation:idx_current+idx_deviation] = 0
+
+#    plt.plot(xf, np.abs(yf))
+#    plt.show()
+
+    value_list = list(irfft(yf))
+
+    return value_list
