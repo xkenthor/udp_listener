@@ -18,19 +18,19 @@
   "time_delay": 0.16,
   "byte_divider": 32768,
   "voltage": 10,
-  "sample_rate": 6.25,
+  "sample_rate": 0.00016,
   "banned_frequencies": [
-          47,
-          48,
-          49,
-          50,
-          51,
-          52,
-          53
+      344,
+      345,
+      346,
+      347,
+      348,
+      349,
+      350,
+      351,
+      352
   ],
   "processed_graphs": [
-      0,
-      2,
-      4
+      2
   ]
 }

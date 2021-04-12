@@ -173,18 +173,27 @@ def remove_freq_list(value_list, sample_rate, freq_list):
     yf = rfft(value_list)
     xf = rfftfreq(vl_len, sample_rate)
 
-    idx_per_freq = len(xf) / (sample_rate / 2)
+    # old sample_rate calculation. leaved4legacy.
+    # idx_per_freq = len(xf) / (sample_rate / 2)
+    idx_per_freq = len(xf) / xf[-1]
 
-    idx_deviation = 2 + int(vl_len / 1000)
+    idx_deviation = 2 + int(vl_len / 1000)*2
 
-#    plt.plot(xf, np.abs(yf))
+##    plt.clf()
+##    plt.plot(xf, np.abs(yf))
+##    plt.show()
+##    print("\n\tvl_len: {}\n\tlen(xf): {}\n\tipf: {}\n\tidxdev: {}\n".format(
+##        vl_len, len(xf), idx_per_freq, idx_deviation))
+##    plt.pause(1)
 
     for frequency in freq_list:
         idx_current = int(frequency * idx_per_freq)
         yf[idx_current-idx_deviation:idx_current+idx_deviation] = 0
 
-#    plt.plot(xf, np.abs(yf))
-#    plt.show()
+##    print("LK: ", idx_current)
+##    plt.plot(xf, np.abs(yf))
+##    plt.show()
+##    plt.pause(2)
 
     value_list = list(irfft(yf))
 
