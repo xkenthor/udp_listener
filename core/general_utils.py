@@ -4,7 +4,7 @@ This module contains general functions that are used in different parts of
 
 """
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 import multiprocessing
 import threading
