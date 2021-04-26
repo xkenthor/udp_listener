@@ -385,7 +385,7 @@ def dump_demon(object_queue):
             ( plot_object, backup_count, save_dir ).
 
     Keyword arguments:
-    object_queue -- < multiprocessing.Queue >
+    object_queue -- < threading.Queue >
 
     """
     while True:
@@ -472,7 +472,7 @@ class PlotDB:
 
         """
         self.__on_process = True
-        self.__dd_proc = multiprocessing.Process(target=dump_demon,
+        self.__dd_proc = threading.Thread(target=dump_demon,
                                                 args=(self.__dd_queue,),
                                                 name="Dump-Demon")
         self.__dd_proc.start()
