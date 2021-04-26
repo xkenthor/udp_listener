@@ -593,7 +593,7 @@ QScrollBar::sub-page:vertical
              <bool>true</bool>
             </property>
             <property name="text">
-             <string>График №1</string>
+             <string>НЧ III</string>
             </property>
            </widget>
           </item>
@@ -614,7 +614,7 @@ QScrollBar::sub-page:vertical
           <item>
            <widget class="QLabel" name="lb_pt_2">
             <property name="text">
-             <string>График №2</string>
+             <string>ВЧ III</string>
             </property>
            </widget>
           </item>
@@ -639,7 +639,7 @@ QScrollBar::sub-page:vertical
           <item>
            <widget class="QLabel" name="lb_pt_3">
             <property name="text">
-             <string>График №3</string>
+             <string>НЧ II</string>
             </property>
            </widget>
           </item>
@@ -660,7 +660,7 @@ QScrollBar::sub-page:vertical
           <item>
            <widget class="QLabel" name="lb_pt_4">
             <property name="text">
-             <string>График №4</string>
+             <string>ВЧ II</string>
             </property>
            </widget>
           </item>
@@ -685,7 +685,7 @@ QScrollBar::sub-page:vertical
           <item>
            <widget class="QLabel" name="lb_pt_5">
             <property name="text">
-             <string>График №5</string>
+             <string>НЧ I</string>
             </property>
            </widget>
           </item>
@@ -706,7 +706,7 @@ QScrollBar::sub-page:vertical
           <item>
            <widget class="QLabel" name="label_pt_6">
             <property name="text">
-             <string>График №6</string>
+             <string>ВЧ I</string>
             </property>
            </widget>
           </item>

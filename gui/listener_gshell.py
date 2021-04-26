@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'gui/ui_sources/main_window.ui'
+# Form implementation generated from reading ui file 'ui_sources/main_window.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.2
 #
@@ -566,12 +566,12 @@ class Ui_MainWindow(object):
         self.le_buffer_size.setText(_translate("MainWindow", "15000000"))
         self.btn_buffer_size.setText(_translate("MainWindow", "Изменить"))
         self.cb_history.setText(_translate("MainWindow", "Сохранять историю"))
-        self.lb_pt_1.setText(_translate("MainWindow", "НЧ I"))
-        self.lb_pt_2.setText(_translate("MainWindow", "ВЧ I"))
+        self.lb_pt_1.setText(_translate("MainWindow", "НЧ III"))
+        self.lb_pt_2.setText(_translate("MainWindow", "ВЧ III"))
         self.lb_pt_3.setText(_translate("MainWindow", "НЧ II"))
         self.lb_pt_4.setText(_translate("MainWindow", "ВЧ II"))
-        self.lb_pt_5.setText(_translate("MainWindow", "НЧ III"))
-        self.label_pt_6.setText(_translate("MainWindow", "ВЧ III"))
+        self.lb_pt_5.setText(_translate("MainWindow", "НЧ I"))
+        self.label_pt_6.setText(_translate("MainWindow", "ВЧ I"))
 from pyqtgraph import PlotWidget
 
 
